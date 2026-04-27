@@ -29,10 +29,8 @@
     }
   }
 
-  function onCardTap(e) {
-    const btn = e.target.closest('.card');
-    if (!btn) return;
-    const uid = btn.dataset.uid;
+  // タップ／スワイプ共通の処理。swipeOp が null なら「タップ」（必要なら + を自動挿入）
+  function activateCard(uid, swipeOp) {
     const card = state.field.find(c => c.uid === uid);
     if (!card) return;
 
@@ -51,18 +49,89 @@
       return;
     }
 
+    const prev = state.expression.length > 0
+      ? state.expression[state.expression.length - 1] : null;
+    const needsOp = prev && (prev.type === 'num' || prev.type === 'rparen');
+    if (needsOp) {
+      const op = swipeOp || '+';
+      if (Game.canAddOp(state, op)) {
+        Game.addOp(state, op);
+      } else {
+        UI.flashFail('そこに数字は置けません');
+        return;
+      }
+    }
+
     if (!Game.canAddCard(state, uid)) {
       UI.flashFail('そこに数字は置けません');
       return;
     }
     Game.addCard(state, card);
     UI.notifySelect();
+    if (swipeOp) UI.flashOp(swipeOp);
+    rerender();
+  }
+
+  // ----- ポインタ／スワイプ検出 -----
+  const SWIPE_THRESHOLD = 28;
+  let pStart = null;
+  let pUid = null;
+  let suppressClickUntil = 0;
+
+  function onPointerDown(e) {
+    const btn = e.target.closest('.card');
+    if (!btn) return;
+    pStart = { x: e.clientX, y: e.clientY };
+    pUid = btn.dataset.uid;
+  }
+
+  function onPointerUp(e) {
+    if (!pStart || !pUid) return;
+    const dx = e.clientX - pStart.x;
+    const dy = e.clientY - pStart.y;
+    const dist = Math.hypot(dx, dy);
+    const uid = pUid;
+    pStart = null;
+    pUid = null;
+    if (dist < SWIPE_THRESHOLD) return; // タップは click ハンドラに任せる
+    let op;
+    if (Math.abs(dx) > Math.abs(dy)) op = dx > 0 ? '*' : '/';
+    else op = dy < 0 ? '+' : '-';
+    suppressClickUntil = Date.now() + 350;
+    activateCard(uid, op);
+  }
+
+  function onPointerCancel() {
+    pStart = null;
+    pUid = null;
+  }
+
+  function onCardClick(e) {
+    if (Date.now() < suppressClickUntil) return;
+    const btn = e.target.closest('.card');
+    if (!btn) return;
+    activateCard(btn.dataset.uid, null);
+  }
+
+  // 式エリアの演算子トークンをタップで循環
+  const OP_CYCLE = ['+', '-', '*', '/'];
+  function onExpressionClick(e) {
+    const opEl = e.target.closest('.expr-op');
+    if (!opEl) return;
+    const idx = parseInt(opEl.dataset.index, 10);
+    if (isNaN(idx)) return;
+    const t = state.expression[idx];
+    if (!t || t.type !== 'op') return;
+    const cur = OP_CYCLE.indexOf(t.value);
+    t.value = OP_CYCLE[(cur + 1) % OP_CYCLE.length];
+    UI.notifySelect();
+    UI.flashOp(t.value);
     rerender();
   }
 
   function onOpClick(op) {
     if (!Game.canAddOp(state, op)) {
-      UI.flashFail('そこに演算子は置けません');
+      UI.flashFail('そこに記号は置けません');
       return;
     }
     Game.addOp(state, op);
@@ -129,11 +198,14 @@
   }
 
   function bindEvents() {
-    document.getElementById('field').addEventListener('click', onCardTap);
-    document.getElementById('op-plus').addEventListener('click', () => onOpClick('+'));
-    document.getElementById('op-minus').addEventListener('click', () => onOpClick('-'));
-    document.getElementById('op-mul').addEventListener('click', () => onOpClick('*'));
-    document.getElementById('op-div').addEventListener('click', () => onOpClick('/'));
+    const field = document.getElementById('field');
+    field.addEventListener('pointerdown', onPointerDown);
+    field.addEventListener('pointerup', onPointerUp);
+    field.addEventListener('pointercancel', onPointerCancel);
+    field.addEventListener('click', onCardClick);
+
+    document.getElementById('expression').addEventListener('click', onExpressionClick);
+
     document.getElementById('op-lparen').addEventListener('click', () => onOpClick('('));
     document.getElementById('op-rparen').addEventListener('click', () => onOpClick(')'));
     document.getElementById('btn-back').addEventListener('click', onBack);

@@ -83,13 +83,11 @@
     <div id="feedback" class="feedback" aria-live="polite"></div>
   </section>
 
-  <section class="ops" aria-label="演算子">
-    <button id="op-plus"   type="button" class="op-btn">＋</button>
-    <button id="op-minus"  type="button" class="op-btn">−</button>
-    <button id="op-mul"    type="button" class="op-btn">×</button>
-    <button id="op-div"    type="button" class="op-btn">÷</button>
-    <button id="op-lparen" type="button" class="op-btn">(</button>
-    <button id="op-rparen" type="button" class="op-btn">)</button>
+  <p class="swipe-hint">タップ＝＋／上：＋ ・ 下：− ・ 右：× ・ 左：÷／式の演算子をタップで切替</p>
+
+  <section class="ops" aria-label="補助操作">
+    <button id="op-lparen" type="button" class="op-btn op-util">(</button>
+    <button id="op-rparen" type="button" class="op-btn op-util">)</button>
     <button id="btn-back"  type="button" class="op-btn op-util">⌫</button>
     <button id="btn-clear" type="button" class="op-btn op-util">クリア</button>
   </section>
@@ -163,14 +161,22 @@
 <div id="rules-modal" class="modal" hidden role="dialog" aria-labelledby="rules-modal-title" aria-modal="true">
   <div class="modal-inner">
     <button class="modal-close" type="button" data-target="rules-modal" aria-label="閉じる">×</button>
-    <h2 id="rules-modal-title">ルール</h2>
+    <h2 id="rules-modal-title">ルール・操作</h2>
     <ul>
       <li>場の5枚のカードを四則演算で組み合わせて <strong>15</strong> を作ります。</li>
-      <li>カードは1回の式で <strong>最大1回</strong> 使えます。</li>
-      <li>1〜5枚の任意の枚数でOK。5枚使い切るとボーナス1枚。</li>
+      <li>カードは1回の式で <strong>最大1回</strong> 使えます。1〜5枚の任意の枚数でOK。</li>
+      <li>5枚使い切るとボーナス1枚。</li>
       <li>計算結果は <strong>整数のみ</strong>。割り算は割り切れる場合のみ。</li>
       <li>「パス」で場の1枚を捨て、山札から1枚補充。</li>
       <li>山札と場が尽きたら終了。獲得枚数がスコアです。</li>
+    </ul>
+    <h3 style="font-family:var(--serif);margin-top:18px;">操作方法</h3>
+    <ul>
+      <li><strong>タップ</strong>：カードを式に追加（自動で「＋」を挟みます）</li>
+      <li><strong>スワイプ</strong>：上＝＋、下＝−、右＝×、左＝÷ で追加</li>
+      <li>式の中の <strong>演算子をタップ</strong> で ＋→−→×→÷ と切り替え</li>
+      <li>カード再タップで式から外せます</li>
+      <li><code>( )</code>・<code>⌫</code>・「クリア」も使えます</li>
     </ul>
     <button class="btn btn-primary modal-close" type="button" data-target="rules-modal">閉じる</button>
   </div>

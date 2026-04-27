@@ -122,24 +122,24 @@
     const root = $('#expression');
     root.innerHTML = '';
     if (state.expression.length === 0) {
-      root.appendChild(el('span', { class: 'expr-placeholder' }, 'カードと演算子を選んで式を作ろう'));
+      root.appendChild(el('span', { class: 'expr-placeholder' },
+        'カードをタップ、または上＋／下−／右×／左÷にスワイプ'));
       return;
     }
-    const parts = state.expression.map(t => {
-      if (t.type === 'num') return String(t.value);
-      if (t.type === 'op') return OP_LABEL[t.value] || t.value;
-      if (t.type === 'lparen') return '(';
-      if (t.type === 'rparen') return ')';
-      return '';
+    state.expression.forEach((t, i) => {
+      let cls = 'expr-token';
+      let txt = '';
+      if (t.type === 'num') { cls += ' expr-num'; txt = String(t.value); }
+      else if (t.type === 'op') { cls += ' expr-op'; txt = OP_LABEL[t.value] || t.value; }
+      else if (t.type === 'lparen') { cls += ' expr-paren'; txt = '('; }
+      else if (t.type === 'rparen') { cls += ' expr-paren'; txt = ')'; }
+      const node = el('span', { class: cls, dataset: { index: String(i) } }, txt);
+      root.appendChild(node);
     });
-    root.appendChild(el('span', { class: 'expr-text' }, parts.join(' ')));
   }
 
   function renderControls(state) {
-    const opMap = {
-      'op-plus': '+', 'op-minus': '-', 'op-mul': '*', 'op-div': '/',
-      'op-lparen': '(', 'op-rparen': ')',
-    };
+    const opMap = { 'op-lparen': '(', 'op-rparen': ')' };
     for (const id in opMap) {
       const btn = document.getElementById(id);
       if (btn) btn.disabled = !Game.canAddOp(state, opMap[id]);
@@ -188,6 +188,17 @@
 
   function notifySelect() { playSelect(); }
 
+  function flashOp(op) {
+    const layer = $('#fx');
+    if (!layer) return;
+    const sym = OP_LABEL[op] || op;
+    const tag = document.createElement('span');
+    tag.className = 'op-flash';
+    tag.textContent = sym;
+    layer.appendChild(tag);
+    setTimeout(() => tag.remove(), 600);
+  }
+
   function burst(color) {
     const layer = $('#fx');
     if (!layer) return;
@@ -227,7 +238,7 @@
 
   global.M15 = global.M15 || {};
   global.M15.UI = {
-    renderAll, flashSuccess, flashFail, notifySelect,
+    renderAll, flashSuccess, flashFail, flashOp, notifySelect,
     openModal, closeModal,
     isPassSelecting, setPassSelecting, setSoundOn,
   };

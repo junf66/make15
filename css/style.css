@@ -176,6 +176,7 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   font-family: var(--sans);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: none;
 }
 .card:hover:not(:disabled) {
   transform: translateY(-2px);
@@ -246,7 +247,31 @@ body.pass-mode .card {
   font-weight: 400;
   color: var(--muted);
 }
-.expr-text { display: inline-block; }
+.expr-token {
+  display: inline-block;
+  margin: 0 2px;
+}
+.expr-num { color: var(--ink); }
+.expr-paren { color: var(--muted); font-weight: 400; }
+.expr-op {
+  color: var(--accent);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(210, 69, 77, 0.08);
+  transition: background 0.12s ease;
+}
+.expr-op:hover { background: rgba(210, 69, 77, 0.16); }
+.expr-op:active { transform: scale(0.92); }
+
+.swipe-hint {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 0 0 8px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
 
 .expression.shake { animation: shake 0.4s ease; }
 @keyframes shake {
@@ -278,7 +303,7 @@ body.pass-mode .card {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ----- Operator buttons ----- */
+/* ----- Utility row (parens, backspace, clear) ----- */
 .ops {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -289,11 +314,11 @@ body.pass-mode .card {
   background: var(--card-bg);
   border: 1.5px solid var(--card-border);
   border-radius: var(--radius);
-  padding: 14px 0;
-  font-size: 22px;
-  font-weight: 700;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 400;
   font-family: var(--sans);
-  color: var(--ink);
+  color: var(--muted);
   transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -301,11 +326,6 @@ body.pass-mode .card {
 .op-btn:active:not(:disabled) {
   transform: scale(0.96);
   border-color: var(--moss);
-}
-.op-btn.op-util {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--muted);
 }
 
 /* ----- Action buttons ----- */
@@ -460,7 +480,7 @@ body.pass-mode .card {
   color: #fff;
 }
 
-/* ----- FX Layer (success burst) ----- */
+/* ----- FX Layer (success burst, op flash) ----- */
 .fx-layer {
   position: fixed;
   top: 50%;
@@ -469,6 +489,23 @@ body.pass-mode .card {
   height: 0;
   pointer-events: none;
   z-index: 50;
+}
+.op-flash {
+  position: absolute;
+  top: -120px;
+  left: 0;
+  transform: translate(-50%, 0);
+  font-family: var(--sans);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 4px 16px rgba(210, 69, 77, 0.35);
+  animation: op-flash 0.55s ease-out forwards;
+}
+@keyframes op-flash {
+  0% { opacity: 0; transform: translate(-50%, 12px) scale(0.6); }
+  30% { opacity: 1; transform: translate(-50%, 0) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -16px) scale(1); }
 }
 .fx-dot {
   position: absolute;
@@ -490,9 +527,9 @@ body.pass-mode .card {
 @media (max-width: 380px) {
   .game { padding: 10px; }
   .field { gap: 6px; }
-  .ops { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .op-btn { padding: 12px 0; font-size: 20px; }
-  .expression { font-size: 18px; padding: 12px; }
+  .ops { gap: 6px; }
+  .op-btn { padding: 8px 0; }
+  .expression { font-size: 20px; padding: 12px; }
   .card-num { font-size: 30px; }
   .btn { padding: 12px 14px; }
 }
@@ -502,7 +539,6 @@ body.pass-mode .card {
   .field { gap: 12px; }
   .card-num { font-size: 48px; }
   .expression { font-size: 26px; min-height: 64px; }
-  .op-btn { font-size: 24px; padding: 16px 0; }
 }
 
 /* Reduce motion */
