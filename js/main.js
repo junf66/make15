@@ -72,38 +72,106 @@
     rerender();
   }
 
-  // ----- ポインタ／スワイプ検出 -----
+  // ----- ポインタ／スワイプ／ドラッグ検出 -----
   const SWIPE_THRESHOLD = 28;
+  const DRAG_THRESHOLD = 12;
   let pStart = null;
   let pUid = null;
   let suppressClickUntil = 0;
+  let dragging = false;
+  let dragOverUid = null;
+  let activePointerId = null;
+
+  function cardElByUid(uid) {
+    return document.querySelector('.card[data-uid="' + uid + '"]');
+  }
+
+  function setDragOver(uid) {
+    if (dragOverUid === uid) return;
+    if (dragOverUid) {
+      const old = cardElByUid(dragOverUid);
+      if (old) old.classList.remove('is-drop-target');
+    }
+    dragOverUid = uid;
+    if (dragOverUid) {
+      const next = cardElByUid(dragOverUid);
+      if (next) next.classList.add('is-drop-target');
+    }
+  }
+
+  function endDrag() {
+    if (pUid) {
+      const src = cardElByUid(pUid);
+      if (src) src.classList.remove('is-grabbed');
+    }
+    setDragOver(null);
+    document.body.classList.remove('is-dragging');
+    dragging = false;
+    activePointerId = null;
+  }
 
   function onPointerDown(e) {
     const btn = e.target.closest('.card');
     if (!btn) return;
     pStart = { x: e.clientX, y: e.clientY };
     pUid = btn.dataset.uid;
+    dragging = false;
+    activePointerId = e.pointerId;
+  }
+
+  function onPointerMove(e) {
+    if (!pStart || !pUid) return;
+    if (activePointerId != null && e.pointerId !== activePointerId) return;
+    const dx = e.clientX - pStart.x;
+    const dy = e.clientY - pStart.y;
+    if (!dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD) {
+      dragging = true;
+      document.body.classList.add('is-dragging');
+      const src = cardElByUid(pUid);
+      if (src) src.classList.add('is-grabbed');
+    }
+    if (!dragging) return;
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const card = target && target.closest ? target.closest('.card') : null;
+    const overUid = (card && card.dataset.uid !== pUid) ? card.dataset.uid : null;
+    setDragOver(overUid);
   }
 
   function onPointerUp(e) {
     if (!pStart || !pUid) return;
+    if (activePointerId != null && e.pointerId !== activePointerId) return;
+    const startUid = pUid;
+    const dropUid = dragOverUid;
     const dx = e.clientX - pStart.x;
     const dy = e.clientY - pStart.y;
     const dist = Math.hypot(dx, dy);
-    const uid = pUid;
     pStart = null;
     pUid = null;
-    if (dist < SWIPE_THRESHOLD) return; // タップは click ハンドラに任せる
-    let op;
-    if (Math.abs(dx) > Math.abs(dy)) op = dx > 0 ? '*' : '/';
-    else op = dy < 0 ? '+' : '-';
-    suppressClickUntil = Date.now() + 350;
-    activateCard(uid, op);
+    endDrag();
+
+    // (a) ドラッグ＆ドロップ：別カードで離した
+    if (dropUid && dropUid !== startUid) {
+      suppressClickUntil = Date.now() + 350;
+      openOpPicker(startUid, dropUid, e.clientX, e.clientY);
+      return;
+    }
+
+    // (b) スワイプ：同じカード内で閾値以上動いた
+    if (dist >= SWIPE_THRESHOLD) {
+      let op;
+      if (Math.abs(dx) > Math.abs(dy)) op = dx > 0 ? '*' : '/';
+      else op = dy < 0 ? '+' : '-';
+      suppressClickUntil = Date.now() + 350;
+      activateCard(startUid, op);
+      return;
+    }
+    // それ以外（タップ）は click ハンドラに任せる
   }
 
   function onPointerCancel() {
     pStart = null;
     pUid = null;
+    endDrag();
   }
 
   function onCardClick(e) {
@@ -111,6 +179,46 @@
     const btn = e.target.closest('.card');
     if (!btn) return;
     activateCard(btn.dataset.uid, null);
+  }
+
+  // ----- ドラッグ→ピッカー -----
+  let pickerSrcUid = null;
+  let pickerDstUid = null;
+
+  function openOpPicker(srcUid, dstUid, x, y) {
+    if (UI.isPassSelecting()) return;
+    if (Game.isCardInExpression(state, srcUid) || Game.isCardInExpression(state, dstUid)) {
+      UI.flashFail('既に式に入っています');
+      return;
+    }
+    pickerSrcUid = srcUid;
+    pickerDstUid = dstUid;
+    const src = state.field.find(c => c.uid === srcUid);
+    const dst = state.field.find(c => c.uid === dstUid);
+    if (!src || !dst) return;
+    UI.openOpPicker(src.value, dst.value, x, y, applyOpPicker);
+  }
+
+  function applyOpPicker(op) {
+    const srcUid = pickerSrcUid;
+    const dstUid = pickerDstUid;
+    pickerSrcUid = pickerDstUid = null;
+    if (!srcUid || !dstUid) return;
+    const src = state.field.find(c => c.uid === srcUid);
+    const dst = state.field.find(c => c.uid === dstUid);
+    if (!src || !dst) return;
+    // 直前が num/rparen なら接続用 + を補う
+    const prev = state.expression.length > 0
+      ? state.expression[state.expression.length - 1] : null;
+    if (prev && (prev.type === 'num' || prev.type === 'rparen')) {
+      Game.addOp(state, '+');
+    }
+    if (!Game.addCard(state, src)) { UI.flashFail('追加できません'); return; }
+    if (!Game.addOp(state, op))    { UI.flashFail('追加できません'); return; }
+    if (!Game.addCard(state, dst)) { UI.flashFail('追加できません'); return; }
+    UI.notifySelect();
+    UI.flashOp(op);
+    rerender();
   }
 
   // 式エリアの演算子トークンをタップで循環
@@ -200,8 +308,9 @@
   function bindEvents() {
     const field = document.getElementById('field');
     field.addEventListener('pointerdown', onPointerDown);
-    field.addEventListener('pointerup', onPointerUp);
-    field.addEventListener('pointercancel', onPointerCancel);
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointercancel', onPointerCancel);
     field.addEventListener('click', onCardClick);
 
     document.getElementById('expression').addEventListener('click', onExpressionClick);

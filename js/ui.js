@@ -216,6 +216,70 @@
     }
   }
 
+  // ----- ドラッグ→演算子ピッカー -----
+  function openOpPicker(srcVal, dstVal, x, y, onPick) {
+    closeOpPicker();
+    const overlay = document.createElement('div');
+    overlay.id = 'op-picker';
+    overlay.className = 'op-picker';
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeOpPicker();
+    });
+
+    const card = document.createElement('div');
+    card.className = 'op-picker-card';
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const W = 220;
+    const H = 240;
+    const left = Math.max(12, Math.min(vw - W - 12, x - W / 2));
+    const top = Math.max(12, Math.min(vh - H - 12, y - H / 2));
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+
+    const label = document.createElement('div');
+    label.className = 'op-picker-label';
+    label.textContent = srcVal + ' ? ' + dstVal;
+    card.appendChild(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'op-picker-grid';
+    const ops = [
+      { op: '+', label: '＋' },
+      { op: '-', label: '−' },
+      { op: '*', label: '×' },
+      { op: '/', label: '÷' },
+    ];
+    for (const o of ops) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'op-picker-btn';
+      btn.textContent = o.label;
+      btn.addEventListener('click', () => {
+        closeOpPicker();
+        onPick(o.op);
+      });
+      grid.appendChild(btn);
+    }
+    card.appendChild(grid);
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'op-picker-cancel';
+    cancel.textContent = 'キャンセル';
+    cancel.addEventListener('click', closeOpPicker);
+    card.appendChild(cancel);
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('is-open'));
+  }
+
+  function closeOpPicker() {
+    const cur = document.getElementById('op-picker');
+    if (cur) cur.remove();
+  }
+
   // ----- モーダル -----
   function openModal(id) {
     const m = document.getElementById(id);
@@ -240,6 +304,7 @@
   global.M15.UI = {
     renderAll, flashSuccess, flashFail, flashOp, notifySelect,
     openModal, closeModal,
+    openOpPicker, closeOpPicker,
     isPassSelecting, setPassSelecting, setSoundOn,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
