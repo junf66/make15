@@ -69,10 +69,29 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   font-size: 22px;
   margin: 0;
   letter-spacing: 0.02em;
+  line-height: 1.2;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 .logo a { color: var(--ink); }
 .logo a:hover { text-decoration: none; }
+.logo-main { white-space: nowrap; }
 .logo-num { color: var(--accent); margin-left: 2px; }
+.logo-sub {
+  font-family: var(--sans);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 480px) {
+  .logo-sub { font-size: 9.5px; }
+}
 
 .header-meta {
   display: flex;
