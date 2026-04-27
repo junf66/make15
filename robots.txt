@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://make15.jp/sitemap.xml

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FAF7F2">
+<title>Make15 | 5枚のカードで15を作る計算カードゲーム【無料・ブラウザで遊べる】</title>
+<meta name="description" content="Make15は5枚のカードを足し算・引き算・かけ算・割り算で組み合わせて15を作るカードゲーム。無料、登録不要、スマホでサクサク遊べる脳トレゲーム。">
+
+<meta property="og:title" content="Make15 | 計算カードゲーム">
+<meta property="og:description" content="5枚のカードで15を作る無料カードゲーム">
+<meta property="og:image" content="https://make15.jp/assets/og.png">
+<meta property="og:url" content="https://make15.jp/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="Make15">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Make15 | 計算カードゲーム">
+<meta name="twitter:description" content="5枚のカードで15を作る無料カードゲーム">
+<meta name="twitter:image" content="https://make15.jp/assets/og.png">
+
+<link rel="alternate" hreflang="ja" href="https://make15.jp/">
+<link rel="alternate" hreflang="x-default" href="https://make15.jp/">
+<link rel="canonical" href="https://make15.jp/">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Game",
+  "name": "Make15",
+  "alternateName": "メイク15",
+  "description": "5枚のカードを四則演算で組み合わせて15を作るブラウザカードゲーム。",
+  "genre": "Puzzle",
+  "playMode": "SinglePlayer",
+  "applicationCategory": "Game",
+  "operatingSystem": "Web Browser",
+  "url": "https://make15.jp/",
+  "inLanguage": "ja",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY"
+  }
+}
+</script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <h1 class="logo"><a href="/">Make<span class="logo-num">15</span></a></h1>
+    <div class="header-meta">
+      <span class="best-score" aria-label="ベストスコア">🏆 BEST <strong id="stat-best">0</strong></span>
+      <button id="btn-sound" type="button" class="icon-btn" aria-label="サウンド切替" aria-pressed="true">🔊</button>
+      <button id="btn-rules" type="button" class="icon-btn" aria-label="ルール">？</button>
+      <button id="btn-new" type="button" class="icon-btn" aria-label="新しいゲーム">⟳</button>
+    </div>
+  </div>
+</header>
+
+<main class="game">
+  <section class="status">
+    <div class="status-item">山札 <strong id="stat-deck">0</strong> 枚</div>
+    <div class="status-item">獲得 <strong id="stat-captured">0</strong> 枚</div>
+    <div class="status-item">目標 <strong>15</strong></div>
+  </section>
+
+  <p id="pass-hint" class="pass-hint" hidden>捨てるカードをタップしてください</p>
+
+  <section id="field" class="field" aria-label="場の5枚のカード"></section>
+
+  <section class="expression-area" aria-live="polite">
+    <div id="expression" class="expression"></div>
+    <div id="feedback" class="feedback" aria-live="polite"></div>
+  </section>
+
+  <section class="ops" aria-label="演算子">
+    <button id="op-plus"   type="button" class="op-btn">＋</button>
+    <button id="op-minus"  type="button" class="op-btn">−</button>
+    <button id="op-mul"    type="button" class="op-btn">×</button>
+    <button id="op-div"    type="button" class="op-btn">÷</button>
+    <button id="op-lparen" type="button" class="op-btn">(</button>
+    <button id="op-rparen" type="button" class="op-btn">)</button>
+    <button id="btn-back"  type="button" class="op-btn op-util">⌫</button>
+    <button id="btn-clear" type="button" class="op-btn op-util">クリア</button>
+  </section>
+
+  <section class="actions">
+    <button id="btn-submit" type="button" class="btn btn-primary">確定</button>
+    <button id="btn-pass"   type="button" class="btn btn-secondary">パス</button>
+  </section>
+
+  <section id="end-banner" class="end-banner" hidden>
+    <h2 id="end-title">ゲーム終了</h2>
+    <p>スコア <strong id="end-score">0</strong> 枚</p>
+    <p id="end-best">ベストスコア: 0</p>
+    <button id="btn-end-new" type="button" class="btn btn-primary">もう一度</button>
+  </section>
+
+  <div id="ad-slot-bottom" class="ad-slot" aria-hidden="true">
+    <!-- TODO: AdSense or affiliate banner -->
+  </div>
+</main>
+
+<section class="lp">
+  <h2>Make15（メイク15）とは</h2>
+  <p>Make15 は、場に並ぶ5枚の数字カードを <strong>足し算・引き算・かけ算・割り算</strong> で組み合わせて「15」を作るシンプルなカードゲームです。ブラウザだけで遊べて、登録もインストールも不要。電車の中や休憩時間にサクッと脳を動かせる気軽な計算パズルとして設計しています。</p>
+
+  <h3>遊び方の流れ</h3>
+  <ol>
+    <li>ゲームを開始すると、山札からシャッフルされた5枚のカードが場に表向きで公開されます。</li>
+    <li>場のカードと、画面下の演算子ボタン（＋／−／×／÷／カッコ）をタップして、合計が15になる式を組み立てます。</li>
+    <li>「確定」を押して式が15になっていれば、使ったカードを獲得。場の空きには山札から新しいカードが補充されます。</li>
+    <li>5枚すべてを使い切れば、ボーナスとして特別カードがさらに1枚もらえます。</li>
+    <li>うまく作れない・作りたくないときは「パス」で場のカードを1枚捨てて引き直し。</li>
+    <li>山札と場のカードがすべてなくなったらゲーム終了。<strong>獲得した枚数があなたのスコア</strong>です。</li>
+  </ol>
+
+  <h3>計算ルール</h3>
+  <ul>
+    <li>使える演算は <code>＋ − × ÷</code> と <code>( )</code>。</li>
+    <li>各カードは1回の式の中で <strong>最大1回まで</strong>。</li>
+    <li>場の5枚は全部使ってもよいし、1〜4枚だけ使ってもOK。</li>
+    <li>計算の途中・最終結果ともに <strong>整数のみ有効</strong>。割り算で割り切れない手は無効です（例: 15 ÷ 2 = 7.5 はNG）。</li>
+    <li>カード「1」と「2」を並べて「12」のように使う、いわゆる <strong>連結（数字の合体）は禁止</strong>。</li>
+  </ul>
+
+  <h3>カード構成</h3>
+  <p>山札は1〜12が各2枚、13〜31が各1枚の合計43枚。「15」のカードは別枠の特別カードとして、5枚使い切ったときのボーナスに使用されます。残りの42枚をシャッフルして山札にします。</p>
+
+  <h3>こんな人におすすめ</h3>
+  <ul>
+    <li>スマホで <strong>ちょっとした空き時間に脳トレ</strong> をしたい方</li>
+    <li>足し算・引き算・かけ算・割り算をテンポよく訓練したい方</li>
+    <li>登録も課金もない、シンプルな <strong>無料カードゲーム</strong> をお探しの方</li>
+    <li>子どもの計算ドリル代わりに、ゲーム感覚で計算に慣れさせたい方</li>
+  </ul>
+
+  <h3>コツ</h3>
+  <p>慣れてくると、「15＝3×5」「15＝7+8」「15＝20−5」など、15を作る基本パターンが見えてきます。引き算とカッコをうまく使うと大きな数字も活かせます。割り算は割り切れる組み合わせを意識すると失敗を減らせます。</p>
+
+  <p class="lp-related">関連ページ: <a href="/rules/">詳しいルール</a> ／ <a href="/tips/">攻略・コツ</a></p>
+
+  <div id="affiliate-related" class="affiliate-block" aria-hidden="true">
+    <!-- TODO: ボードゲーム・カードゲーム関連商品のアフィリエイトリンク -->
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p>© <span id="year"></span> Make15.jp / Solo puzzle game. All operations run locally in your browser.</p>
+</footer>
+
+<!-- ルールモーダル -->
+<div id="rules-modal" class="modal" hidden role="dialog" aria-labelledby="rules-modal-title" aria-modal="true">
+  <div class="modal-inner">
+    <button class="modal-close" type="button" data-target="rules-modal" aria-label="閉じる">×</button>
+    <h2 id="rules-modal-title">ルール</h2>
+    <ul>
+      <li>場の5枚のカードを四則演算で組み合わせて <strong>15</strong> を作ります。</li>
+      <li>カードは1回の式で <strong>最大1回</strong> 使えます。</li>
+      <li>1〜5枚の任意の枚数でOK。5枚使い切るとボーナス1枚。</li>
+      <li>計算結果は <strong>整数のみ</strong>。割り算は割り切れる場合のみ。</li>
+      <li>「パス」で場の1枚を捨て、山札から1枚補充。</li>
+      <li>山札と場が尽きたら終了。獲得枚数がスコアです。</li>
+    </ul>
+    <button class="btn btn-primary modal-close" type="button" data-target="rules-modal">閉じる</button>
+  </div>
+</div>
+
+<div id="fx" class="fx-layer" aria-hidden="true"></div>
+
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="js/deck.js"></script>
+<script src="js/evaluator.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
