@@ -208,11 +208,14 @@
     return state.field.some(c => c != null);
   }
 
-  function onPass() {
+  function onGiveUp() {
     if (!fieldHasCards()) return;
-    if (!confirm('場のカードを1枚捨てて、山札から1枚引きます。よろしいですか？')) return;
-    UI.setPassSelecting(true);
+    if (!confirm('現在の場をすべて捨てて、新しい5枚を引きます。よろしいですか？\n（獲得スコアは保持されます）')) return;
+    Game.giveUp(state);
+    UI.setPassSelecting(false);
+    UI.closeOpPicker();
     rerender();
+    afterAction();
   }
 
   function afterAction() {
@@ -259,7 +262,7 @@
     window.addEventListener('pointercancel', onPointerCancel);
     field.addEventListener('click', onCardClick);
 
-    document.getElementById('btn-pass').addEventListener('click', onPass);
+    document.getElementById('btn-giveup').addEventListener('click', onGiveUp);
     document.getElementById('btn-restart').addEventListener('click', onRestartClick);
     document.getElementById('btn-rules').addEventListener('click', onRules);
     document.getElementById('btn-new').addEventListener('click', onNewClick);

@@ -167,6 +167,22 @@
     return true;
   }
 
+  // ギブアップ：場の全カードを捨てて、新しい5枚を引く
+  function giveUp(state) {
+    if (state.finished) return false;
+    for (let i = 0; i < state.field.length; i++) {
+      if (state.field[i] != null) {
+        state.discard.push(state.field[i]);
+        state.field[i] = null;
+      }
+    }
+    refill(state);
+    snapshotRound(state);
+    state.lastEvent = { type: 'giveUp' };
+    checkEnd(state);
+    return true;
+  }
+
   function refill(state) {
     for (let i = 0; i < state.field.length; i++) {
       if (state.field[i] == null) {
@@ -225,7 +241,7 @@
   global.M15 = global.M15 || {};
   global.M15.Game = {
     createGame, restartGame, restartRound,
-    combine, captureCell, pass,
+    combine, captureCell, pass, giveUp,
     previews, calcOp,
     loadBestScore, saveBestScore, incrementGameCount, loadSettings, saveSettings,
     CONSTANTS: { FIELD_SIZE, TARGET },

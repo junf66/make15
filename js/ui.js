@@ -151,7 +151,7 @@
 
   function renderControls(state) {
     const anyCard = state.field.some(c => c != null);
-    $('#btn-pass').disabled = !anyCard;
+    $('#btn-giveup').disabled = !anyCard;
   }
 
   function renderEnd(state) {
