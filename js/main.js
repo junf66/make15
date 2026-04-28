@@ -153,7 +153,7 @@
   function handleDrop(src, dst, x, y) {
     if (UI.isPassSelecting()) return;
 
-    // running → card：dstの場カードを running に足す
+    // running → card：場カードを結果に足す
     if (src.kind === 'running' && dst.kind === 'card' && state.running) {
       openPicker(state.running.value, dst.value, x, y, (op) => {
         const r = Game.addRunning(state, dst.uid, op);
@@ -166,11 +166,10 @@
       return;
     }
 
-    // ここから先は src が card の場合のみ
     if (src.kind !== 'card') return;
 
-    // running があるとき：source を running に足す（dst が card でも running でも同じ扱い）
-    if (state.running) {
+    // card → running：source を結果に足す
+    if (dst.kind === 'running' && state.running) {
       openPicker(state.running.value, src.value, x, y, (op) => {
         const r = Game.addRunning(state, src.uid, op);
         if (!r.ok) { UI.flashFail(r.error); return; }
@@ -182,8 +181,12 @@
       return;
     }
 
-    // running が無いとき：場2枚を合体して新しい running にする
+    // card → card：場の2枚を合体（runningが無い時のみ）
     if (dst.kind === 'card') {
+      if (state.running) {
+        UI.flashFail('計算中です：カードを計算結果にドロップ、または × で計算をやめてください');
+        return;
+      }
       openPicker(src.value, dst.value, x, y, (op) => {
         const r = Game.combineFields(state, src.uid, op, dst.uid);
         if (!r.ok) { UI.flashFail(r.error); return; }
@@ -221,7 +224,7 @@
     // 計算結果セルの ×（リセット）
     if (e.target.closest('[data-role="reset"]')) {
       if (!state.running) return;
-      if (!confirm('計算を捨てますか？（使ったカードは戻りません）')) return;
+      if (!confirm('計算をやめて、使ったカードを場に戻しますか？')) return;
       Game.resetRunning(state);
       rerender();
       afterAction();

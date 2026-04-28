@@ -49,6 +49,7 @@
       discard: [],
       running: null,
       runningSlot: null,
+      runningSnapshot: null,
       captured: 0,
       finished: false,
       lastEvent: null,
@@ -126,6 +127,8 @@
     const b = state.field[ib];
     const v = calcOp(a.value, b.value, op);
     if (v === null) return { ok: false, error: '整数で計算できません' };
+    // running を作る前のフィールドをスナップショット（× で戻すため）
+    state.runningSnapshot = { field: cloneCardArr(state.field) };
     state.field[ia] = null;
     state.field[ib] = null;
     state.running = { value: v, weight: 2 };
@@ -161,6 +164,7 @@
     state.captured += w;
     state.running = null;
     state.runningSlot = null;
+    state.runningSnapshot = null;
     refill(state);
     snapshotRound(state);
     state.lastEvent = { type: 'capture', weight: w };
@@ -168,14 +172,16 @@
     return { ok: true, weight: w };
   }
 
-  // 計算中の値を捨てる（使ったカードは戻らない）。場を5枚に補充
+  // ×：計算をやめて、計算前の場の状態に戻す（使ったカードが戻ってくる）
   function resetRunning(state) {
     if (state.finished) return false;
     if (!state.running) return false;
+    if (state.runningSnapshot) {
+      state.field = cloneCardArr(state.runningSnapshot.field);
+    }
     state.running = null;
     state.runningSlot = null;
-    refill(state);
-    snapshotRound(state);
+    state.runningSnapshot = null;
     state.lastEvent = { type: 'resetRunning' };
     checkEnd(state);
     return true;
