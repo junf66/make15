@@ -162,7 +162,7 @@
       Game.saveBestScore(state.captured);
       rerender();
       afterAction();
-    }, 700);
+    }, 1100);
   }
 
   function onCardClick(e) {

@@ -146,7 +146,10 @@
     banner.textContent = msg || '＝ 15　獲得！';
     banner.className = 'feedback is-success';
     burst('#D2454D');
-    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 1400);
+    setTimeout(() => burst('#D2454D'), 350);
+    setTimeout(() => { burst('#5C7A4A'); playSuccess(); }, 750);
+    setTimeout(() => burst('#D2454D'), 1300);
+    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 3200);
   }
   function flashCombine(value) {
     playCombine();
