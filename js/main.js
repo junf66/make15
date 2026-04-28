@@ -113,11 +113,16 @@
   function onPointerDown(e) {
     const btn = e.target.closest('.card');
     if (!btn) return;
+    if (e.pointerType !== 'mouse') e.preventDefault();
     pStart = { x: e.clientX, y: e.clientY };
     pUid = btn.dataset.uid;
     dragging = false;
     activePointerId = e.pointerId;
     try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+
+  function onTouchStart(e) {
+    if (e.target.closest('.card')) e.preventDefault();
   }
 
   function onPointerMove(e) {
@@ -309,6 +314,8 @@
   function bindEvents() {
     const field = document.getElementById('field');
     field.addEventListener('pointerdown', onPointerDown);
+    field.addEventListener('touchstart', onTouchStart, { passive: false });
+    field.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('pointermove', onPointerMove);
     document.addEventListener('pointerup', onPointerUp);
     document.addEventListener('pointercancel', onPointerCancel);
