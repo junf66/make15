@@ -1,8 +1,9 @@
-// ui.js — DOM操作・アニメーション・効果音
+// ui.js — DOM操作・アニメーション・効果音（合体型 / 計算中の値）
 (function (global) {
   'use strict';
 
   const Game = global.M15.Game;
+  const TARGET = Game.CONSTANTS.TARGET;
 
   const OP_LABEL = { '+': '＋', '-': '−', '*': '×', '/': '÷' };
 
@@ -28,7 +29,7 @@
     return node;
   }
 
-  // ----- 効果音（Web Audio APIで合成） -----
+  // ----- 効果音 -----
   let audioCtx = null;
   function getAudio() {
     if (audioCtx) return audioCtx;
@@ -39,7 +40,6 @@
       return audioCtx;
     } catch (e) { return null; }
   }
-
   function beep(opts) {
     opts = opts || {};
     const freq = opts.freq != null ? opts.freq : 440;
@@ -62,12 +62,13 @@
     osc.start();
     osc.stop(ctx.currentTime + duration + 0.05);
   }
-
   let soundOn = true;
   function setSoundOn(v) { soundOn = !!v; }
-
-  function playSelect() {
-    if (soundOn) beep({ freq: 660, duration: 0.06, type: 'triangle', gain: 0.05 });
+  function playSelect() { if (soundOn) beep({ freq: 660, duration: 0.06, type: 'triangle', gain: 0.05 }); }
+  function playCombine() {
+    if (!soundOn) return;
+    beep({ freq: 440, duration: 0.08, type: 'triangle', gain: 0.06 });
+    setTimeout(() => beep({ freq: 660, duration: 0.12, type: 'triangle', gain: 0.06 }), 70);
   }
   function playSuccess() {
     if (!soundOn) return;
@@ -75,16 +76,13 @@
     setTimeout(() => beep({ freq: 784, duration: 0.18, type: 'triangle', gain: 0.07 }), 120);
     setTimeout(() => beep({ freq: 1047, duration: 0.22, type: 'triangle', gain: 0.07 }), 280);
   }
-  function playFail() {
-    if (!soundOn) return;
-    beep({ freq: 220, duration: 0.18, type: 'sawtooth', gain: 0.05, sweep: -80 });
-  }
+  function playFail() { if (soundOn) beep({ freq: 220, duration: 0.18, type: 'sawtooth', gain: 0.05, sweep: -80 }); }
 
   // ----- 描画 -----
   function renderAll(state) {
     renderHeader(state);
+    renderRunning(state);
     renderField(state);
-    renderExpression(state);
     renderControls(state);
     renderEnd(state);
   }
@@ -95,6 +93,36 @@
     $('#stat-best').textContent = String(Game.loadBestScore());
   }
 
+  function renderRunning(state) {
+    const root = $('#running');
+    root.innerHTML = '';
+    if (!state.running) {
+      root.classList.remove('is-target');
+      root.classList.add('is-empty');
+      root.dataset.has = 'false';
+      root.appendChild(el('span', { class: 'running-empty' },
+        '2枚のカードをドラッグして合体させてください'));
+      return;
+    }
+    root.classList.remove('is-empty');
+    root.dataset.has = 'true';
+    const v = state.running.value;
+    if (v === TARGET) root.classList.add('is-target');
+    else root.classList.remove('is-target');
+    root.appendChild(el('span', { class: 'running-num' }, String(v)));
+    root.appendChild(el('span', { class: 'running-weight' }, '使った枚数 ' + state.running.weight));
+    if (v === TARGET) {
+      root.appendChild(el('span', { class: 'running-grab' }, 'タップで獲得'));
+    }
+    const reset = el('button', {
+      type: 'button',
+      class: 'running-reset',
+      'aria-label': '計算を捨てる',
+      dataset: { role: 'reset' },
+    }, '×');
+    root.appendChild(reset);
+  }
+
   function renderField(state) {
     const root = $('#field');
     root.innerHTML = '';
@@ -103,50 +131,23 @@
       return;
     }
     for (const card of state.field) {
-      const used = Game.isCardInExpression(state, card.uid);
+      const isTarget = card.value === TARGET && !state.running;
+      const cls = ['card'];
+      if (isTarget) cls.push('is-target');
       const node = el('button', {
         type: 'button',
-        class: 'card' + (used ? ' is-used' : ''),
+        class: cls.join(' '),
         dataset: { uid: card.uid, value: String(card.value) },
-        'aria-label': 'カード ' + card.value,
-        'aria-pressed': used ? 'true' : 'false',
+        'aria-label': isTarget ? '15のカード（タップで獲得）' : 'カード ' + card.value,
       }, [
         el('span', { class: 'card-num' }, String(card.value)),
-        el('span', { class: 'card-mark', 'aria-hidden': 'true' }),
+        isTarget ? el('span', { class: 'card-grab' }, '獲得') : null,
       ]);
       root.appendChild(node);
     }
   }
 
-  function renderExpression(state) {
-    const root = $('#expression');
-    root.innerHTML = '';
-    if (state.expression.length === 0) {
-      root.appendChild(el('span', { class: 'expr-placeholder' },
-        'カードをタップ、または上＋／下−／右×／左÷にスワイプ'));
-      return;
-    }
-    state.expression.forEach((t, i) => {
-      let cls = 'expr-token';
-      let txt = '';
-      if (t.type === 'num') { cls += ' expr-num'; txt = String(t.value); }
-      else if (t.type === 'op') { cls += ' expr-op'; txt = OP_LABEL[t.value] || t.value; }
-      else if (t.type === 'lparen') { cls += ' expr-paren'; txt = '('; }
-      else if (t.type === 'rparen') { cls += ' expr-paren'; txt = ')'; }
-      const node = el('span', { class: cls, dataset: { index: String(i) } }, txt);
-      root.appendChild(node);
-    });
-  }
-
   function renderControls(state) {
-    const opMap = { 'op-lparen': '(', 'op-rparen': ')' };
-    for (const id in opMap) {
-      const btn = document.getElementById(id);
-      if (btn) btn.disabled = !Game.canAddOp(state, opMap[id]);
-    }
-    $('#btn-back').disabled = state.expression.length === 0;
-    $('#btn-clear').disabled = state.expression.length === 0;
-    $('#btn-submit').disabled = state.expression.length === 0;
     $('#btn-pass').disabled = state.field.length === 0;
   }
 
@@ -165,29 +166,32 @@
   }
 
   // ----- フィードバック -----
-  function flashSuccess() {
+  function flashSuccess(msg) {
     playSuccess();
     const banner = $('#feedback');
-    banner.textContent = '＝ 15　成功！';
+    banner.textContent = msg || '＝ 15　獲得！';
     banner.className = 'feedback is-success';
     burst('#D2454D');
     setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 1400);
   }
-
+  function flashCombine(value) {
+    playCombine();
+    const banner = $('#feedback');
+    banner.textContent = '＝ ' + value;
+    banner.className = 'feedback is-combine';
+    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 900);
+  }
   function flashFail(msg) {
     playFail();
     const banner = $('#feedback');
     banner.textContent = msg || 'もう一度どうぞ';
     banner.className = 'feedback is-fail';
-    const expr = $('#expression');
-    expr.classList.remove('shake');
-    void expr.offsetWidth;
-    expr.classList.add('shake');
-    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 1800);
+    const fld = $('#field');
+    fld.classList.remove('shake');
+    void fld.offsetWidth;
+    fld.classList.add('shake');
+    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 1600);
   }
-
-  function notifySelect() { playSelect(); }
-
   function flashOp(op) {
     const layer = $('#fx');
     if (!layer) return;
@@ -198,6 +202,7 @@
     layer.appendChild(tag);
     setTimeout(() => tag.remove(), 600);
   }
+  function notifySelect() { playSelect(); }
 
   function burst(color) {
     const layer = $('#fx');
@@ -216,7 +221,7 @@
     }
   }
 
-  // ----- ドラッグ→演算子ピッカー -----
+  // ----- 演算子ピッカー（プレビュー値付き） -----
   function openOpPicker(srcVal, dstVal, x, y, onPick) {
     closeOpPicker();
     const overlay = document.createElement('div');
@@ -226,16 +231,18 @@
       if (e.target === overlay) closeOpPicker();
     });
 
+    const pv = Game.previews(srcVal, dstVal);
     const card = document.createElement('div');
     card.className = 'op-picker-card';
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const W = 220;
-    const H = 240;
+    const W = 240;
+    const H = 280;
     const left = Math.max(12, Math.min(vw - W - 12, x - W / 2));
     const top = Math.max(12, Math.min(vh - H - 12, y - H / 2));
     card.style.left = left + 'px';
     card.style.top = top + 'px';
+    card.style.width = W + 'px';
 
     const label = document.createElement('div');
     label.className = 'op-picker-label';
@@ -254,8 +261,20 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'op-picker-btn';
-      btn.textContent = o.label;
+      const v = pv[o.op];
+      const valid = v !== null;
+      btn.disabled = !valid;
+      const sym = document.createElement('span');
+      sym.className = 'op-picker-sym';
+      sym.textContent = o.label;
+      const num = document.createElement('span');
+      num.className = 'op-picker-val';
+      num.textContent = valid ? String(v) : '—';
+      if (valid && v === TARGET) btn.classList.add('is-target');
+      btn.appendChild(sym);
+      btn.appendChild(num);
       btn.addEventListener('click', () => {
+        if (!valid) return;
         closeOpPicker();
         onPick(o.op);
       });
@@ -274,7 +293,6 @@
     document.body.appendChild(overlay);
     requestAnimationFrame(() => overlay.classList.add('is-open'));
   }
-
   function closeOpPicker() {
     const cur = document.getElementById('op-picker');
     if (cur) cur.remove();
@@ -302,7 +320,7 @@
 
   global.M15 = global.M15 || {};
   global.M15.UI = {
-    renderAll, flashSuccess, flashFail, flashOp, notifySelect,
+    renderAll, flashSuccess, flashCombine, flashFail, flashOp, notifySelect,
     openModal, closeModal,
     openOpPicker, closeOpPicker,
     isPassSelecting, setPassSelecting, setSoundOn,

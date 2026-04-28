@@ -1,9 +1,13 @@
-// game.js — ゲーム進行ロジック
+// game.js — ゲーム進行ロジック（計算中の値方式）
+// ルール:
+//   - 場の2枚をドラッグで合体 → そのカードは消えて、計算結果が「計算中の値」として上に浮く
+//   - さらに場のカードをドラッグして計算中の値と組み合わせると、計算中の値が更新される
+//   - 計算中の値が 15 になったらタップで獲得（スコアは計算中の値に使った枚数）
+//   - パスで場の1枚を捨てて1枚補充
 (function (global) {
   'use strict';
 
-  const { buildPlayDeck, shuffle, SPECIAL_CARD } = global.M15.Deck;
-  const { judge } = global.M15.Evaluator;
+  const { buildFullDeck, shuffle } = global.M15.Deck;
 
   const FIELD_SIZE = 5;
   const TARGET = 15;
@@ -22,7 +26,7 @@
   }
 
   function createGame() {
-    const deck = shuffle(buildPlayDeck()).map(newCard);
+    const deck = shuffle(buildFullDeck()).map(v => newCard(v));
     const field = [];
     for (let i = 0; i < FIELD_SIZE; i++) {
       if (deck.length) field.push(deck.shift());
@@ -31,73 +35,129 @@
       deck: deck,
       field: field,
       discard: [],
-      expression: [],
+      running: null,        // { value, weight } または null
       captured: 0,
-      bonusEarned: false,
       finished: false,
-      lastResult: null,
+      lastEvent: null,
     };
   }
 
-  function lastToken(state) {
-    return state.expression.length > 0 ? state.expression[state.expression.length - 1] : null;
-  }
-
-  function isCardInExpression(state, cardUid) {
-    return state.expression.some(t => t.type === 'num' && t.cardId === cardUid);
-  }
-
-  function canAddCard(state, cardUid) {
-    if (state.finished) return false;
-    if (isCardInExpression(state, cardUid)) return false;
-    const prev = lastToken(state);
-    if (prev && (prev.type === 'num' || prev.type === 'rparen')) return false;
-    return true;
-  }
-
-  function canAddOp(state, op) {
-    if (state.finished) return false;
-    const prev = lastToken(state);
-    if (op === '(') {
-      if (prev && (prev.type === 'num' || prev.type === 'rparen')) return false;
-      return true;
+  function calcOp(a, b, op) {
+    switch (op) {
+      case '+': return a + b;
+      case '-': return a - b;
+      case '*': return a * b;
+      case '/':
+        if (b === 0) return null;
+        if (a % b !== 0) return null;
+        return a / b;
+      default: return null;
     }
-    if (op === ')') {
-      if (!prev || prev.type === 'op' || prev.type === 'lparen') return false;
-      let depth = 0;
-      for (const t of state.expression) {
-        if (t.type === 'lparen') depth++;
-        else if (t.type === 'rparen') depth--;
-      }
-      return depth > 0;
+  }
+
+  function previews(a, b) {
+    return {
+      '+': calcOp(a, b, '+'),
+      '-': calcOp(a, b, '-'),
+      '*': calcOp(a, b, '*'),
+      '/': calcOp(a, b, '/'),
+    };
+  }
+
+  // 場の2枚を合体して計算中の値を作る（計算中の値が無いときのみ可）
+  function combineFields(state, uidA, op, uidB) {
+    if (state.finished) return { ok: false, error: 'ゲーム終了' };
+    if (state.running) return { ok: false, error: '計算中の値が既にあります' };
+    if (uidA === uidB) return { ok: false, error: '同じカードは選べません' };
+    const ia = state.field.findIndex(c => c.uid === uidA);
+    const ib = state.field.findIndex(c => c.uid === uidB);
+    if (ia < 0 || ib < 0) return { ok: false, error: 'カードが見つかりません' };
+    const a = state.field[ia];
+    const b = state.field[ib];
+    const v = calcOp(a.value, b.value, op);
+    if (v === null) return { ok: false, error: '整数で計算できません' };
+    const positions = [ia, ib].sort((x, y) => y - x);
+    for (const p of positions) state.field.splice(p, 1);
+    state.running = { value: v, weight: 2 };
+    refill(state);
+    state.lastEvent = { type: 'combine', value: v, op: op };
+    checkEnd(state);
+    return { ok: true, running: state.running };
+  }
+
+  // 計算中の値に場のカードを足す
+  function addRunning(state, uid, op) {
+    if (state.finished) return { ok: false, error: 'ゲーム終了' };
+    if (!state.running) return { ok: false, error: '計算中の値がありません' };
+    const idx = state.field.findIndex(c => c.uid === uid);
+    if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
+    const card = state.field[idx];
+    const v = calcOp(state.running.value, card.value, op);
+    if (v === null) return { ok: false, error: '整数で計算できません' };
+    state.field.splice(idx, 1);
+    state.running = { value: v, weight: state.running.weight + 1 };
+    refill(state);
+    state.lastEvent = { type: 'addRunning', value: v, op: op };
+    checkEnd(state);
+    return { ok: true, running: state.running };
+  }
+
+  // 計算中の値を獲得（15 のときのみ可）
+  function captureRunning(state) {
+    if (state.finished) return { ok: false, error: 'ゲーム終了' };
+    if (!state.running) return { ok: false, error: '計算中の値がありません' };
+    if (state.running.value !== TARGET) {
+      return { ok: false, error: '15ではありません（' + state.running.value + '）' };
     }
-    if (!prev) return false;
-    if (prev.type === 'op' || prev.type === 'lparen') return false;
+    const w = state.running.weight;
+    state.captured += w;
+    state.running = null;
+    state.lastEvent = { type: 'capture', weight: w };
+    checkEnd(state);
+    return { ok: true, weight: w };
+  }
+
+  // 計算中の値を捨てる（使ったカードは戻らない）
+  function resetRunning(state) {
+    if (state.finished) return false;
+    if (!state.running) return false;
+    state.running = null;
+    state.lastEvent = { type: 'resetRunning' };
+    checkEnd(state);
     return true;
   }
 
-  function addCard(state, card) {
-    if (!canAddCard(state, card.uid)) return false;
-    state.expression.push({ type: 'num', value: card.value, cardId: card.uid });
-    return true;
+  // 場のカードが既に 15 ならタップで獲得（計算中の値が無い時のみ。1枚分のスコア）
+  function captureCard(state, uid) {
+    if (state.finished) return { ok: false, error: 'ゲーム終了' };
+    if (state.running) return { ok: false, error: 'まずは計算中の値を確定（15）してください' };
+    const idx = state.field.findIndex(c => c.uid === uid);
+    if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
+    const card = state.field[idx];
+    if (card.value !== TARGET) {
+      return { ok: false, error: '15ではありません（' + card.value + '）' };
+    }
+    state.field.splice(idx, 1);
+    state.captured += 1;
+    refill(state);
+    state.lastEvent = { type: 'capture', weight: 1 };
+    checkEnd(state);
+    return { ok: true, weight: 1 };
   }
 
-  function addOp(state, op) {
-    if (!canAddOp(state, op)) return false;
-    if (op === '(') state.expression.push({ type: 'lparen' });
-    else if (op === ')') state.expression.push({ type: 'rparen' });
-    else state.expression.push({ type: 'op', value: op });
+  function pass(state, uid) {
+    if (state.finished) return false;
+    if (state.field.length === 0) return false;
+    const idx = uid
+      ? state.field.findIndex(c => c.uid === uid)
+      : 0;
+    if (idx < 0) return false;
+    const removed = state.field.splice(idx, 1)[0];
+    state.discard.push(removed);
+    if (state.deck.length > 0) state.field.push(state.deck.shift());
+    state.lastEvent = { type: 'pass' };
+    checkEnd(state);
     return true;
-  }
-
-  function backspace(state) {
-    if (state.expression.length === 0) return false;
-    state.expression.pop();
-    return true;
-  }
-
-  function clearExpression(state) {
-    state.expression = [];
   }
 
   function refill(state) {
@@ -107,52 +167,18 @@
   }
 
   function checkEnd(state) {
-    if (state.deck.length === 0 && state.field.length === 0) {
+    if (state.deck.length === 0 && state.field.length === 0 && !state.running) {
       state.finished = true;
     }
   }
 
-  function submit(state) {
-    if (state.finished) return { ok: false, error: 'ゲームは終了しています' };
-    const result = judge(state.expression, TARGET);
-    state.lastResult = result;
-    if (!result.ok) return result;
-    const usedSet = new Set(result.usedCardIds);
-    const usedCount = usedSet.size;
-    state.field = state.field.filter(c => !usedSet.has(c.uid));
-    state.captured += usedCount;
-    if (usedCount === FIELD_SIZE && !state.bonusEarned) {
-      state.bonusEarned = true;
-      state.captured += 1;
-    }
-    refill(state);
-    state.expression = [];
-    checkEnd(state);
-    return result;
-  }
-
-  function pass(state, cardUid) {
-    if (state.finished) return false;
-    if (state.field.length === 0) return false;
-    const idx = cardUid
-      ? state.field.findIndex(c => c.uid === cardUid)
-      : 0;
-    if (idx < 0) return false;
-    const removed = state.field.splice(idx, 1)[0];
-    state.discard.push(removed);
-    if (state.deck.length > 0) state.field.push(state.deck.shift());
-    state.expression = [];
-    checkEnd(state);
-    return true;
-  }
-
+  // localStorage
   function loadBestScore() {
     try {
       const v = localStorage.getItem(STORAGE_KEYS.BEST_SCORE);
       return v ? parseInt(v, 10) || 0 : 0;
     } catch (e) { return 0; }
   }
-
   function saveBestScore(score) {
     try {
       const cur = loadBestScore();
@@ -163,7 +189,6 @@
     } catch (e) {}
     return false;
   }
-
   function incrementGameCount() {
     try {
       const v = parseInt(localStorage.getItem(STORAGE_KEYS.TOTAL_GAMES) || '0', 10);
@@ -171,7 +196,6 @@
       localStorage.setItem(STORAGE_KEYS.LAST_PLAYED, new Date().toISOString());
     } catch (e) {}
   }
-
   function loadSettings() {
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
@@ -179,7 +203,6 @@
       return Object.assign({ sound: true, theme: 'light' }, JSON.parse(raw));
     } catch (e) { return { sound: true, theme: 'light' }; }
   }
-
   function saveSettings(settings) {
     try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings)); }
     catch (e) {}
@@ -187,9 +210,9 @@
 
   global.M15 = global.M15 || {};
   global.M15.Game = {
-    createGame, canAddCard, canAddOp, addCard, addOp, backspace, clearExpression,
-    isCardInExpression, submit, pass,
+    createGame, combineFields, addRunning, captureRunning, resetRunning, captureCard, pass,
+    previews, calcOp,
     loadBestScore, saveBestScore, incrementGameCount, loadSettings, saveSettings,
-    CONSTANTS: { FIELD_SIZE, TARGET, SPECIAL_CARD },
+    CONSTANTS: { FIELD_SIZE, TARGET },
   };
 })(typeof window !== 'undefined' ? window : globalThis);

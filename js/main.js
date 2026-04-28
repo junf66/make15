@@ -1,9 +1,10 @@
-// main.js — エントリポイント
+// main.js — エントリポイント（合体型 / 計算中の値）
 (function (global) {
   'use strict';
 
   const Game = global.M15.Game;
   const UI = global.M15.UI;
+  const TARGET = Game.CONSTANTS.TARGET;
 
   let state = null;
   let settings = Game.loadSettings();
@@ -14,23 +15,194 @@
     state = Game.createGame();
     Game.incrementGameCount();
     UI.setPassSelecting(false);
+    UI.closeOpPicker();
     rerender();
     document.getElementById('end-banner').hidden = true;
   }
 
-  function removeCardFromExpression(uid) {
-    const idx = state.expression.findIndex(t => t.type === 'num' && t.cardId === uid);
-    if (idx < 0) return;
-    state.expression.splice(idx, 1);
-    while (state.expression.length > 0) {
-      const last = state.expression[state.expression.length - 1];
-      if (last.type === 'op' || last.type === 'lparen') state.expression.pop();
-      else break;
+  // ----- ポインタ／ドラッグ検出 -----
+  // ターゲット: 場のカード or 計算中の値タイル（"running"）
+  const DRAG_THRESHOLD = 12;
+  let pStart = null;
+  let pSrc = null;          // { kind: 'card'|'running', uid?: string, value: number }
+  let activePointerId = null;
+  let dragging = false;
+  let dragOver = null;      // 同じ形式の {kind, uid?, value}
+  let suppressClickUntil = 0;
+
+  function elByCard(uid) {
+    return document.querySelector('.card[data-uid="' + uid + '"]');
+  }
+
+  function setDragOver(target) {
+    const same = (a, b) => (!a && !b) ||
+      (a && b && a.kind === b.kind && a.uid === b.uid);
+    if (same(dragOver, target)) return;
+    if (dragOver) {
+      const old = dragOver.kind === 'card'
+        ? elByCard(dragOver.uid)
+        : document.getElementById('running');
+      if (old) old.classList.remove('is-drop-target');
+    }
+    dragOver = target;
+    if (dragOver) {
+      const next = dragOver.kind === 'card'
+        ? elByCard(dragOver.uid)
+        : document.getElementById('running');
+      if (next) next.classList.add('is-drop-target');
     }
   }
 
-  // タップ／スワイプ共通の処理。swipeOp が null なら「タップ」（必要なら + を自動挿入）
-  function activateCard(uid, swipeOp) {
+  function endDrag() {
+    if (pSrc) {
+      const node = pSrc.kind === 'card' ? elByCard(pSrc.uid) : document.getElementById('running');
+      if (node) node.classList.remove('is-grabbed');
+    }
+    setDragOver(null);
+    document.body.classList.remove('is-dragging');
+    dragging = false;
+    activePointerId = null;
+  }
+
+  function targetFromPoint(x, y) {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const card = el.closest && el.closest('.card');
+    if (card) return { kind: 'card', uid: card.dataset.uid, value: Number(card.dataset.value) };
+    const running = el.closest && el.closest('#running');
+    if (running && running.dataset.has === 'true') {
+      return { kind: 'running', value: state.running ? state.running.value : 0 };
+    }
+    return null;
+  }
+
+  function onPointerDown(e) {
+    // 場のカード
+    const cardBtn = e.target.closest && e.target.closest('.card');
+    if (cardBtn) {
+      if (e.pointerType !== 'mouse') e.preventDefault();
+      pStart = { x: e.clientX, y: e.clientY };
+      pSrc = { kind: 'card', uid: cardBtn.dataset.uid, value: Number(cardBtn.dataset.value) };
+      dragging = false;
+      activePointerId = e.pointerId;
+      try { cardBtn.setPointerCapture(e.pointerId); } catch (_) {}
+      return;
+    }
+    // 計算中の値タイル
+    const running = e.target.closest && e.target.closest('#running');
+    if (running && state.running) {
+      // ×ボタン（リセット）はドラッグ対象外
+      if (e.target.closest('[data-role="reset"]')) return;
+      if (e.pointerType !== 'mouse') e.preventDefault();
+      pStart = { x: e.clientX, y: e.clientY };
+      pSrc = { kind: 'running', value: state.running.value };
+      dragging = false;
+      activePointerId = e.pointerId;
+      try { running.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+  }
+
+  function onTouchStart(e) {
+    if (e.target.closest('.card') || e.target.closest('#running')) e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (!pStart || !pSrc) return;
+    if (activePointerId != null && e.pointerId !== activePointerId) return;
+    const dx = e.clientX - pStart.x;
+    const dy = e.clientY - pStart.y;
+    if (!dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD) {
+      dragging = true;
+      document.body.classList.add('is-dragging');
+      const node = pSrc.kind === 'card' ? elByCard(pSrc.uid) : document.getElementById('running');
+      if (node) node.classList.add('is-grabbed');
+    }
+    if (!dragging) return;
+    const target = targetFromPoint(e.clientX, e.clientY);
+    // 自分自身は除外
+    if (target && target.kind === pSrc.kind && target.uid === pSrc.uid) {
+      setDragOver(null);
+    } else {
+      setDragOver(target);
+    }
+  }
+
+  function onPointerUp(e) {
+    if (!pStart || !pSrc) return;
+    if (activePointerId != null && e.pointerId !== activePointerId) return;
+    const src = pSrc;
+    const dst = dragOver;
+    pStart = null;
+    pSrc = null;
+    endDrag();
+
+    if (dst) {
+      suppressClickUntil = Date.now() + 350;
+      handleDrop(src, dst, e.clientX, e.clientY);
+    }
+    // タップは click ハンドラに委譲
+  }
+
+  function onPointerCancel() {
+    pStart = null;
+    pSrc = null;
+    endDrag();
+  }
+
+  function handleDrop(src, dst, x, y) {
+    if (UI.isPassSelecting()) return;
+
+    // (1) card → card：場2枚を合体（runningが無い時のみ）
+    if (src.kind === 'card' && dst.kind === 'card') {
+      if (state.running) {
+        UI.flashFail('計算中です（カードを計算結果にドロップしてください）');
+        return;
+      }
+      openPicker(src.value, dst.value, x, y, (op) => {
+        const r = Game.combineFields(state, src.uid, op, dst.uid);
+        if (!r.ok) { UI.flashFail(r.error); return; }
+        UI.flashCombine(r.running.value);
+        UI.flashOp(op);
+        rerender();
+      });
+      return;
+    }
+
+    // (2) card → running：計算中の値に足す
+    if (src.kind === 'card' && dst.kind === 'running') {
+      openPicker(state.running.value, src.value, x, y, (op) => {
+        const r = Game.addRunning(state, src.uid, op);
+        if (!r.ok) { UI.flashFail(r.error); return; }
+        UI.flashCombine(r.running.value);
+        UI.flashOp(op);
+        rerender();
+      });
+      return;
+    }
+
+    // (3) running → card：上と同じ意味（runningにcardを足す）
+    if (src.kind === 'running' && dst.kind === 'card') {
+      openPicker(state.running.value, dst.value, x, y, (op) => {
+        const r = Game.addRunning(state, dst.uid, op);
+        if (!r.ok) { UI.flashFail(r.error); return; }
+        UI.flashCombine(r.running.value);
+        UI.flashOp(op);
+        rerender();
+      });
+      return;
+    }
+  }
+
+  function openPicker(a, b, x, y, onPick) {
+    UI.openOpPicker(a, b, x, y, onPick);
+  }
+
+  // ----- タップ処理 -----
+  function onCardClick(e) {
+    if (Date.now() < suppressClickUntil) return;
+    const btn = e.target.closest('.card');
+    if (!btn) return;
+    const uid = btn.dataset.uid;
     const card = state.field.find(c => c.uid === uid);
     if (!card) return;
 
@@ -42,243 +214,62 @@
       return;
     }
 
-    if (Game.isCardInExpression(state, uid)) {
-      removeCardFromExpression(uid);
-      UI.notifySelect();
-      rerender();
-      return;
-    }
-
-    const prev = state.expression.length > 0
-      ? state.expression[state.expression.length - 1] : null;
-    const needsOp = prev && (prev.type === 'num' || prev.type === 'rparen');
-    if (needsOp) {
-      const op = swipeOp || '+';
-      if (Game.canAddOp(state, op)) {
-        Game.addOp(state, op);
+    // 値が15のカード（running無し）はタップで獲得
+    if (!state.running && card.value === TARGET) {
+      const r = Game.captureCard(state, uid);
+      if (r.ok) {
+        UI.flashSuccess('+1 獲得！');
+        Game.saveBestScore(state.captured);
+        rerender();
+        afterAction();
       } else {
-        UI.flashFail('そこに数字は置けません');
-        return;
+        UI.flashFail(r.error);
       }
-    }
-
-    if (!Game.canAddCard(state, uid)) {
-      UI.flashFail('そこに数字は置けません');
-      return;
-    }
-    Game.addCard(state, card);
-    UI.notifySelect();
-    if (swipeOp) UI.flashOp(swipeOp);
-    rerender();
-  }
-
-  // ----- ポインタ／スワイプ／ドラッグ検出 -----
-  const SWIPE_THRESHOLD = 28;
-  const DRAG_THRESHOLD = 12;
-  let pStart = null;
-  let pUid = null;
-  let suppressClickUntil = 0;
-  let dragging = false;
-  let dragOverUid = null;
-  let activePointerId = null;
-
-  function cardElByUid(uid) {
-    return document.querySelector('.card[data-uid="' + uid + '"]');
-  }
-
-  function setDragOver(uid) {
-    if (dragOverUid === uid) return;
-    if (dragOverUid) {
-      const old = cardElByUid(dragOverUid);
-      if (old) old.classList.remove('is-drop-target');
-    }
-    dragOverUid = uid;
-    if (dragOverUid) {
-      const next = cardElByUid(dragOverUid);
-      if (next) next.classList.add('is-drop-target');
-    }
-  }
-
-  function endDrag() {
-    if (pUid) {
-      const src = cardElByUid(pUid);
-      if (src) src.classList.remove('is-grabbed');
-    }
-    setDragOver(null);
-    document.body.classList.remove('is-dragging');
-    dragging = false;
-    activePointerId = null;
-  }
-
-  function onPointerDown(e) {
-    const btn = e.target.closest('.card');
-    if (!btn) return;
-    if (e.pointerType !== 'mouse') e.preventDefault();
-    pStart = { x: e.clientX, y: e.clientY };
-    pUid = btn.dataset.uid;
-    dragging = false;
-    activePointerId = e.pointerId;
-    try { btn.setPointerCapture(e.pointerId); } catch (_) {}
-  }
-
-  function onTouchStart(e) {
-    if (e.target.closest('.card')) e.preventDefault();
-  }
-
-  function onPointerMove(e) {
-    if (!pStart || !pUid) return;
-    if (activePointerId != null && e.pointerId !== activePointerId) return;
-    const dx = e.clientX - pStart.x;
-    const dy = e.clientY - pStart.y;
-    if (!dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD) {
-      dragging = true;
-      document.body.classList.add('is-dragging');
-      const src = cardElByUid(pUid);
-      if (src) src.classList.add('is-grabbed');
-    }
-    if (!dragging) return;
-    const target = document.elementFromPoint(e.clientX, e.clientY);
-    const card = target && target.closest ? target.closest('.card') : null;
-    const overUid = (card && card.dataset.uid !== pUid) ? card.dataset.uid : null;
-    setDragOver(overUid);
-  }
-
-  function onPointerUp(e) {
-    if (!pStart || !pUid) return;
-    if (activePointerId != null && e.pointerId !== activePointerId) return;
-    const startUid = pUid;
-    const dropUid = dragOverUid;
-    const dx = e.clientX - pStart.x;
-    const dy = e.clientY - pStart.y;
-    const dist = Math.hypot(dx, dy);
-    pStart = null;
-    pUid = null;
-    endDrag();
-
-    // (a) ドラッグ＆ドロップ：別カードで離した
-    if (dropUid && dropUid !== startUid) {
-      suppressClickUntil = Date.now() + 350;
-      openOpPicker(startUid, dropUid, e.clientX, e.clientY);
       return;
     }
 
-    // (b) スワイプ：同じカード内で閾値以上動いた
-    if (dist >= SWIPE_THRESHOLD) {
-      let op;
-      if (Math.abs(dx) > Math.abs(dy)) op = dx > 0 ? '*' : '/';
-      else op = dy < 0 ? '+' : '-';
-      suppressClickUntil = Date.now() + 350;
-      activateCard(startUid, op);
-      return;
+    // それ以外
+    if (state.running) {
+      UI.flashFail('カードを計算結果にドラッグしてください');
+    } else {
+      UI.flashFail('2枚をドラッグして合体させてください');
     }
-    // それ以外（タップ）は click ハンドラに任せる
   }
 
-  function onPointerCancel() {
-    pStart = null;
-    pUid = null;
-    endDrag();
-  }
-
-  function onCardClick(e) {
+  function onRunningClick(e) {
     if (Date.now() < suppressClickUntil) return;
-    const btn = e.target.closest('.card');
-    if (!btn) return;
-    activateCard(btn.dataset.uid, null);
-  }
-
-  // ----- ドラッグ→ピッカー -----
-  let pickerSrcUid = null;
-  let pickerDstUid = null;
-
-  function openOpPicker(srcUid, dstUid, x, y) {
-    if (UI.isPassSelecting()) return;
-    if (Game.isCardInExpression(state, srcUid) || Game.isCardInExpression(state, dstUid)) {
-      UI.flashFail('既に式に入っています');
-      return;
-    }
-    pickerSrcUid = srcUid;
-    pickerDstUid = dstUid;
-    const src = state.field.find(c => c.uid === srcUid);
-    const dst = state.field.find(c => c.uid === dstUid);
-    if (!src || !dst) return;
-    UI.openOpPicker(src.value, dst.value, x, y, applyOpPicker);
-  }
-
-  function applyOpPicker(op) {
-    const srcUid = pickerSrcUid;
-    const dstUid = pickerDstUid;
-    pickerSrcUid = pickerDstUid = null;
-    if (!srcUid || !dstUid) return;
-    const src = state.field.find(c => c.uid === srcUid);
-    const dst = state.field.find(c => c.uid === dstUid);
-    if (!src || !dst) return;
-    // 直前が num/rparen なら接続用 + を補う
-    const prev = state.expression.length > 0
-      ? state.expression[state.expression.length - 1] : null;
-    if (prev && (prev.type === 'num' || prev.type === 'rparen')) {
-      Game.addOp(state, '+');
-    }
-    if (!Game.addCard(state, src)) { UI.flashFail('追加できません'); return; }
-    if (!Game.addOp(state, op))    { UI.flashFail('追加できません'); return; }
-    if (!Game.addCard(state, dst)) { UI.flashFail('追加できません'); return; }
-    UI.notifySelect();
-    UI.flashOp(op);
-    rerender();
-  }
-
-  // 式エリアの演算子トークンをタップで循環
-  const OP_CYCLE = ['+', '-', '*', '/'];
-  function onExpressionClick(e) {
-    const opEl = e.target.closest('.expr-op');
-    if (!opEl) return;
-    const idx = parseInt(opEl.dataset.index, 10);
-    if (isNaN(idx)) return;
-    const t = state.expression[idx];
-    if (!t || t.type !== 'op') return;
-    const cur = OP_CYCLE.indexOf(t.value);
-    t.value = OP_CYCLE[(cur + 1) % OP_CYCLE.length];
-    UI.notifySelect();
-    UI.flashOp(t.value);
-    rerender();
-  }
-
-  function onOpClick(op) {
-    if (!Game.canAddOp(state, op)) {
-      UI.flashFail('そこに記号は置けません');
-      return;
-    }
-    Game.addOp(state, op);
-    UI.notifySelect();
-    rerender();
-  }
-
-  function onBack() {
-    if (Game.backspace(state)) { UI.notifySelect(); rerender(); }
-  }
-
-  function onClear() {
-    Game.clearExpression(state);
-    rerender();
-  }
-
-  function onSubmit() {
-    const result = Game.submit(state);
-    if (result.ok) {
-      UI.flashSuccess();
-      Game.saveBestScore(state.captured);
+    if (!state.running) return;
+    // ×ボタン
+    if (e.target.closest('[data-role="reset"]')) {
+      if (!confirm('計算中の値を捨てますか？（使ったカードは戻りません）')) return;
+      Game.resetRunning(state);
       rerender();
       afterAction();
+      return;
+    }
+    // タップで獲得（15のとき）
+    if (state.running.value === TARGET) {
+      const r = Game.captureRunning(state);
+      if (r.ok) {
+        UI.flashSuccess('+' + r.weight + ' 獲得！');
+        Game.saveBestScore(state.captured);
+        rerender();
+        afterAction();
+      } else {
+        UI.flashFail(r.error);
+      }
     } else {
-      UI.flashFail(result.error || '15になりません');
-      rerender();
+      UI.flashFail('まだ15ではありません（' + state.running.value + '）');
     }
   }
 
   function onPass() {
     if (state.field.length === 0) return;
+    if (state.running) {
+      UI.flashFail('計算中はパスできません（× で捨ててから）');
+      return;
+    }
     if (!confirm('場のカードを1枚捨てて、山札から1枚引きます。よろしいですか？')) return;
-    Game.clearExpression(state);
     UI.setPassSelecting(true);
     rerender();
   }
@@ -304,7 +295,7 @@
   }
 
   function onNewClick() {
-    if (state && !state.finished && state.captured === 0 && state.expression.length === 0) {
+    if (state && !state.finished && state.captured === 0 && !state.running) {
       newGame();
     } else if (confirm('新しいゲームを始めますか？（現在のスコアはリセットされます）')) {
       newGame();
@@ -313,21 +304,19 @@
 
   function bindEvents() {
     const field = document.getElementById('field');
+    const running = document.getElementById('running');
     field.addEventListener('pointerdown', onPointerDown);
+    running.addEventListener('pointerdown', onPointerDown);
     field.addEventListener('touchstart', onTouchStart, { passive: false });
+    running.addEventListener('touchstart', onTouchStart, { passive: false });
     field.addEventListener('contextmenu', e => e.preventDefault());
+    running.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('pointermove', onPointerMove);
     document.addEventListener('pointerup', onPointerUp);
     document.addEventListener('pointercancel', onPointerCancel);
     field.addEventListener('click', onCardClick);
+    running.addEventListener('click', onRunningClick);
 
-    document.getElementById('expression').addEventListener('click', onExpressionClick);
-
-    document.getElementById('op-lparen').addEventListener('click', () => onOpClick('('));
-    document.getElementById('op-rparen').addEventListener('click', () => onOpClick(')'));
-    document.getElementById('btn-back').addEventListener('click', onBack);
-    document.getElementById('btn-clear').addEventListener('click', onClear);
-    document.getElementById('btn-submit').addEventListener('click', onSubmit);
     document.getElementById('btn-pass').addEventListener('click', onPass);
     document.getElementById('btn-rules').addEventListener('click', onRules);
     document.getElementById('btn-new').addEventListener('click', onNewClick);

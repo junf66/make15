@@ -158,6 +158,98 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   margin: 0 0 12px;
   animation: pulse 1.4s ease-in-out infinite;
 }
+
+/* ----- 計算中の値タイル ----- */
+.running {
+  position: relative;
+  min-height: 96px;
+  margin: 0 0 12px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  border: 1.5px dashed var(--card-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--sans);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.running.is-empty {
+  border-style: dashed;
+  background: var(--soft);
+}
+.running[data-has="true"] {
+  border-style: solid;
+  border-color: var(--moss);
+  background: var(--card-bg);
+  cursor: pointer;
+}
+.running.is-target {
+  border-color: var(--accent);
+  background: #FFF5F4;
+  animation: target-pulse 1.4s ease-in-out infinite;
+  cursor: pointer;
+}
+@keyframes target-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(210,69,77,0.0); }
+  50% { box-shadow: 0 0 0 6px rgba(210,69,77,0.18); }
+}
+.running.is-grabbed {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 14px 28px rgba(26,26,26,0.18);
+  pointer-events: none;
+  z-index: 5;
+}
+.running.is-drop-target {
+  border-color: var(--moss);
+  background: #F2F6EC;
+  box-shadow: 0 0 0 4px rgba(92,122,74,0.18);
+  transform: translateY(-2px);
+}
+.running-empty { color: var(--muted); font-size: 13px; }
+.running-num {
+  font-family: var(--sans);
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.running.is-target .running-num { color: var(--accent); }
+.running-weight {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.running-grab {
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.running-reset {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+.running-reset:hover { background: #e6e1d6; color: var(--ink); }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
@@ -212,12 +304,24 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
 .card:active:not(:disabled) {
   transform: translateY(0);
 }
-.card.is-used {
-  transform: translateY(-6px);
+.card.is-target {
   border-color: var(--accent);
-  box-shadow: 0 8px 16px rgba(210, 69, 77, 0.22);
+  background: #FFF5F4;
+  animation: target-pulse 1.4s ease-in-out infinite;
 }
-.card.is-used .card-num { color: var(--accent); }
+.card.is-target .card-num { color: var(--accent); }
+.card-grab {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
 
 .card-num {
   font-size: clamp(28px, 9vw, 42px);
@@ -303,16 +407,31 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   background: var(--card-bg);
   border: 1.5px solid var(--card-border);
   border-radius: 10px;
-  padding: 16px 0;
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--ink);
+  padding: 10px 0;
   font-family: var(--sans);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
 }
-.op-picker-btn:hover { background: var(--soft); border-color: var(--moss); }
-.op-picker-btn:active { transform: scale(0.94); }
+.op-picker-btn:hover:not(:disabled) { background: var(--soft); border-color: var(--moss); }
+.op-picker-btn:active:not(:disabled) { transform: scale(0.94); }
+.op-picker-sym { font-size: 22px; font-weight: 700; color: var(--ink); }
+.op-picker-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.op-picker-btn:disabled .op-picker-val { color: var(--card-border); }
+.op-picker-btn.is-target {
+  border-color: var(--accent);
+  background: #FFF5F4;
+}
+.op-picker-btn.is-target .op-picker-val { color: var(--accent); }
+.op-picker-btn.is-target .op-picker-sym { color: var(--accent); }
 .op-picker-cancel {
   display: block;
   width: 100%;
@@ -325,60 +444,16 @@ body.is-dragging { user-select: none; cursor: grabbing; }
 }
 .op-picker-cancel:hover { background: var(--soft); color: var(--ink); }
 
-/* ----- Expression ----- */
-.expression-area {
-  margin-bottom: 12px;
-}
-.expression {
-  background: var(--card-bg);
-  border: 1.5px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  min-height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: var(--ink);
-  transition: border-color 0.15s ease;
-  word-break: break-word;
-  text-align: center;
-}
-.expr-placeholder {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--muted);
-}
-.expr-token {
-  display: inline-block;
-  margin: 0 2px;
-}
-.expr-num { color: var(--ink); }
-.expr-paren { color: var(--muted); font-weight: 400; }
-.expr-op {
-  color: var(--accent);
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: rgba(210, 69, 77, 0.08);
-  transition: background 0.12s ease;
-}
-.expr-op:hover { background: rgba(210, 69, 77, 0.16); }
-.expr-op:active { transform: scale(0.92); }
-
 .swipe-hint {
   text-align: center;
   font-size: 11.5px;
   color: var(--muted);
-  margin: 0 0 8px;
-  line-height: 1.4;
+  margin: 8px 0 12px;
+  line-height: 1.5;
   letter-spacing: 0.02em;
 }
 
-.expression.shake { animation: shake 0.4s ease; }
+.field.shake { animation: shake 0.4s ease; }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-6px); }

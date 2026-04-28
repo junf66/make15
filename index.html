@@ -79,25 +79,16 @@
 
   <p id="pass-hint" class="pass-hint" hidden>捨てるカードをタップしてください</p>
 
-  <section id="field" class="field" aria-label="場の5枚のカード"></section>
+  <section id="running" class="running is-empty" data-has="false" aria-live="polite" aria-label="計算中の値"></section>
 
-  <section class="expression-area" aria-live="polite">
-    <div id="expression" class="expression"></div>
-    <div id="feedback" class="feedback" aria-live="polite"></div>
-  </section>
+  <div id="feedback" class="feedback" aria-live="polite"></div>
 
-  <p class="swipe-hint">カードを別カードへ <strong>ドラッグ</strong> して演算子を選択／<strong>タップ</strong> で＋ ／<strong>スワイプ</strong>↑＋ ↓− →× ←÷／式の演算子はタップで切替</p>
+  <section id="field" class="field" aria-label="場のカード"></section>
 
-  <section class="ops" aria-label="補助操作">
-    <button id="op-lparen" type="button" class="op-btn op-util">(</button>
-    <button id="op-rparen" type="button" class="op-btn op-util">)</button>
-    <button id="btn-back"  type="button" class="op-btn op-util">⌫</button>
-    <button id="btn-clear" type="button" class="op-btn op-util">クリア</button>
-  </section>
+  <p class="swipe-hint">カードを別カードへ <strong>ドラッグ</strong> → ＋ − × ÷ を選ぶ → <strong>2枚は消えて結果の数字が残る</strong> ／ さらにカードをドラッグして合体／ 15 になったらタップで獲得</p>
 
   <section class="actions">
-    <button id="btn-submit" type="button" class="btn btn-primary">確定</button>
-    <button id="btn-pass"   type="button" class="btn btn-secondary">パス</button>
+    <button id="btn-pass" type="button" class="btn btn-secondary">パス</button>
   </section>
 
   <section id="end-banner" class="end-banner" hidden>
@@ -118,25 +109,24 @@
 
   <h3>遊び方の流れ</h3>
   <ol>
-    <li>ゲームを開始すると、山札からシャッフルされた5枚のカードが場に表向きで公開されます。</li>
-    <li>場のカードと、画面下の演算子ボタン（＋／−／×／÷／カッコ）をタップして、合計が15になる式を組み立てます。</li>
-    <li>「確定」を押して式が15になっていれば、使ったカードを獲得。場の空きには山札から新しいカードが補充されます。</li>
-    <li>5枚すべてを使い切れば、ボーナスとして特別カードがさらに1枚もらえます。</li>
-    <li>うまく作れない・作りたくないときは「パス」で場のカードを1枚捨てて引き直し。</li>
-    <li>山札と場のカードがすべてなくなったらゲーム終了。<strong>獲得した枚数があなたのスコア</strong>です。</li>
+    <li>場に5枚のカードが表向きで配られます。</li>
+    <li>カードを別のカードへ <strong>ドラッグ</strong>。出てきた <code>＋ − × ÷</code> から演算子を選ぶと、その2枚は消えて <strong>計算結果の数字</strong> だけが上に残ります。</li>
+    <li>場の他のカードを残った数字へドラッグして、もう一度演算を選ぶ。これを繰り返して数字を <strong>15</strong> に育てます。</li>
+    <li>結果が 15 になったら数字をタップで獲得。スコアは <strong>使ったカードの枚数</strong>。</li>
+    <li>場の空きは山札から自動補充。うまく作れないときは「パス」で1枚捨てて引き直し。</li>
+    <li>山札と場のカードがすべてなくなったらゲーム終了。<strong>獲得した枚数があなたのスコア</strong> です。</li>
   </ol>
 
   <h3>計算ルール</h3>
   <ul>
-    <li>使える演算は <code>＋ − × ÷</code> と <code>( )</code>。</li>
-    <li>各カードは1回の式の中で <strong>最大1回まで</strong>。</li>
-    <li>場の5枚は全部使ってもよいし、1〜4枚だけ使ってもOK。</li>
-    <li>計算の途中・最終結果ともに <strong>整数のみ有効</strong>。割り算で割り切れない手は無効です（例: 15 ÷ 2 = 7.5 はNG）。</li>
-    <li>カード「1」と「2」を並べて「12」のように使う、いわゆる <strong>連結（数字の合体）は禁止</strong>。</li>
+    <li>使える演算は <code>＋ − × ÷</code> の四則演算。</li>
+    <li>計算結果は <strong>整数のみ有効</strong>。割り算で割り切れない手は選べません（例: 15 ÷ 2 = 7.5 はNG）。</li>
+    <li>0で割ることはできません。</li>
+    <li>使ったカードは元には戻りません。15を作れず計算をやり直したいときは × ボタンで捨てます（カードは戻りません）。</li>
   </ul>
 
   <h3>カード構成</h3>
-  <p>山札は1〜12が各2枚、13〜31が各1枚の合計43枚。「15」のカードは別枠の特別カードとして、5枚使い切ったときのボーナスに使用されます。残りの42枚をシャッフルして山札にします。</p>
+  <p>山札は1〜12が各2枚、13〜31が各1枚の合計 43枚。シャッフルして場に5枚並べます。</p>
 
   <h3>こんな人におすすめ</h3>
   <ul>
@@ -147,7 +137,7 @@
   </ul>
 
   <h3>コツ</h3>
-  <p>慣れてくると、「15＝3×5」「15＝7+8」「15＝20−5」など、15を作る基本パターンが見えてきます。引き算とカッコをうまく使うと大きな数字も活かせます。割り算は割り切れる組み合わせを意識すると失敗を減らせます。</p>
+  <p>慣れてくると「15＝3×5」「15＝7+8」「15＝20−5」など、15を作る基本パターンが見えてきます。引き算で大きな数字を小さな15に近づけたり、割り算で一気に圧縮したりと組み合わせの工夫がスコア（使ったカード枚数）を伸ばすカギ。1枚ずつ多く合体させるほど高得点なので、慎重に演算子を選んでください。</p>
 
   <p class="lp-related">関連ページ: <a href="/rules/">詳しいルール</a> ／ <a href="/tips/">攻略・コツ</a></p>
 
@@ -166,21 +156,19 @@
     <button class="modal-close" type="button" data-target="rules-modal" aria-label="閉じる">×</button>
     <h2 id="rules-modal-title">ルール・操作</h2>
     <ul>
-      <li>場の5枚のカードを四則演算で組み合わせて <strong>15</strong> を作ります。</li>
-      <li>カードは1回の式で <strong>最大1回</strong> 使えます。1〜5枚の任意の枚数でOK。</li>
-      <li>5枚使い切るとボーナス1枚。</li>
-      <li>計算結果は <strong>整数のみ</strong>。割り算は割り切れる場合のみ。</li>
-      <li>「パス」で場の1枚を捨て、山札から1枚補充。</li>
+      <li>カードを別カードへ <strong>ドラッグ</strong> → ＋ − × ÷ を選ぶ → 2枚は消えて結果の数字だけ残る。</li>
+      <li>残った数字に別のカードをさらにドラッグ → 演算子を選ぶ → 数字が更新される。</li>
+      <li>数字が <strong>15</strong> になったらタップで獲得。<strong>使ったカードの枚数</strong> がスコア。</li>
+      <li>計算結果は <strong>整数のみ</strong>（割り切れない÷は選べません）。</li>
+      <li>「× ボタン」で計算中の値を捨てる（使ったカードは戻りません）。</li>
+      <li>「パス」で場の1枚を捨て、山札から1枚補充（計算中はパスできません）。</li>
       <li>山札と場が尽きたら終了。獲得枚数がスコアです。</li>
     </ul>
     <h3 style="font-family:var(--serif);margin-top:18px;">操作方法</h3>
     <ul>
-      <li><strong>ドラッグ</strong>：カードを別のカードへドラッグして、出てきた ＋ − × ÷ から演算子を選択（2枚同時に式へ）</li>
-      <li><strong>タップ</strong>：カードを式に追加（直前と「＋」で繋ぎます）</li>
-      <li><strong>スワイプ</strong>：上＝＋、下＝−、右＝×、左＝÷ で追加</li>
-      <li>式の中の <strong>演算子をタップ</strong> で ＋→−→×→÷ と切り替え</li>
-      <li>カード再タップで式から外せます</li>
-      <li><code>( )</code>・<code>⌫</code>・「クリア」も使えます</li>
+      <li><strong>ドラッグ</strong>：場のカード → 場のカード（最初の合体）／場のカード → 結果の数字（追加で合体）</li>
+      <li><strong>タップ</strong>：結果の数字が15のとき → 獲得／場のカードが15のとき → 獲得</li>
+      <li>計算中の <strong>×ボタン</strong> で計算を捨てる（使ったカードは戻らない）</li>
     </ul>
     <button class="btn btn-primary modal-close" type="button" data-target="rules-modal">閉じる</button>
   </div>
