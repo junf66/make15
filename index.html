@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260428k">
+<link rel="stylesheet" href="css/style.css?v=20260428l">
 
 <script type="application/ld+json">
 {
@@ -151,22 +151,14 @@
 <div id="rules-modal" class="modal" hidden role="dialog" aria-labelledby="rules-modal-title" aria-modal="true">
   <div class="modal-inner">
     <button class="modal-close" type="button" data-target="rules-modal" aria-label="閉じる">×</button>
-    <h2 id="rules-modal-title">ルール・操作</h2>
+    <h2 id="rules-modal-title">Make15 — 15を作るゲーム</h2>
+    <p>5枚のカードを四則演算で合体し、最終的に <strong>1つの数字＝15</strong> にしたらステージクリア。</p>
     <ul>
-      <li>カードを別カードへ <strong>ドラッグ</strong> → ＋ − × ÷ を選ぶ → 2枚は消えて結果の数字だけ残る。</li>
-      <li>残った数字に別のカードをさらにドラッグ → 演算子を選ぶ → 数字が更新される。</li>
-      <li>場の <strong>すべてのカードを合体して1つの数字にし、それが15</strong> になったらクリア（使ったカードの枚数だけスコア加算）。途中で15を作っても、他のカードが残っていると獲得できません。</li>
-      <li>計算結果は <strong>整数のみ</strong>（割り切れない÷は選べません）。</li>
-      <li>− と ÷ は順序に関係なく <strong>大きい方 − 小さい方</strong>／<strong>大きい方 ÷ 小さい方</strong> で計算します（負の数や小数にはなりません）。</li>
-      <li>「× ボタン」で計算中の値を捨てる（使ったカードは戻りません）。</li>
-      <li>「パス」で場の1枚を捨て、山札から1枚補充（計算中はパスできません）。</li>
-      <li>山札と場が尽きたら終了。獲得枚数がスコアです。</li>
-    </ul>
-    <h3 style="font-family:var(--serif);margin-top:18px;">操作方法</h3>
-    <ul>
-      <li><strong>ドラッグ</strong>：場のカード → 場のカード（最初の合体）／場のカード → 結果の数字（追加で合体）</li>
-      <li><strong>タップ</strong>：結果の数字が15のとき → 獲得／場のカードが15のとき → 獲得</li>
-      <li>計算中の <strong>×ボタン</strong> で計算を捨てる（使ったカードは戻らない）</li>
+      <li>カードを別カードへ <strong>ドラッグ</strong> → ＋ − × ÷ を選ぶと、2枚は消えて結果の数字が残る。</li>
+      <li>場の全カードを1つにまとめ <strong>15 になると自動で獲得</strong>（使った枚数だけスコア加算）。</li>
+      <li>計算結果は <strong>整数のみ</strong>（割り切れない÷は選べない）。</li>
+      <li>− と ÷ は順序に関係なく <strong>大きい方−小さい方／大きい方÷小さい方</strong>。</li>
+      <li><strong>Give Up</strong>：場を捨てて新しい5枚へ／<strong>Retry</strong>：同じ手札の最初から（スコア保持）。</li>
     </ul>
     <button class="btn btn-primary modal-close" type="button" data-target="rules-modal">閉じる</button>
   </div>
@@ -175,10 +167,10 @@
 <div id="fx" class="fx-layer" aria-hidden="true"></div>
 
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-<script src="js/deck.js?v=20260428k"></script>
-<script src="js/evaluator.js?v=20260428k"></script>
-<script src="js/game.js?v=20260428k"></script>
-<script src="js/ui.js?v=20260428k"></script>
-<script src="js/main.js?v=20260428k"></script>
+<script src="js/deck.js?v=20260428l"></script>
+<script src="js/evaluator.js?v=20260428l"></script>
+<script src="js/game.js?v=20260428l"></script>
+<script src="js/ui.js?v=20260428l"></script>
+<script src="js/main.js?v=20260428l"></script>
 </body>
 </html>
