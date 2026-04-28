@@ -60,10 +60,8 @@
     switch (op) {
       case '+': return a + b;
       case '-': {
-        // 負の数になる場合は無効
-        const r = a - b;
-        if (r < 0) return null;
-        return r;
+        // 順番に関係なく「大きい数 − 小さい数」
+        return Math.max(a, b) - Math.min(a, b);
       }
       case '*': return a * b;
       case '/': {
