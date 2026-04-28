@@ -240,12 +240,18 @@ body.pass-mode .card {
 }
 
 /* ドラッグ中の演出 */
-body.is-dragging { user-select: none; }
+body.is-dragging { user-select: none; cursor: grabbing; }
+.card { cursor: pointer; }
+@media (hover: hover) {
+  .card:hover:not(:disabled) { cursor: grab; }
+}
 .card.is-grabbed {
   transform: translateY(-10px) scale(1.04);
   box-shadow: 0 14px 28px rgba(26,26,26,0.22);
   z-index: 5;
   opacity: 0.92;
+  pointer-events: none;
+  cursor: grabbing;
 }
 .card.is-drop-target {
   border-color: var(--moss);

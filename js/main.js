@@ -117,6 +117,7 @@
     pUid = btn.dataset.uid;
     dragging = false;
     activePointerId = e.pointerId;
+    try { btn.setPointerCapture(e.pointerId); } catch (_) {}
   }
 
   function onPointerMove(e) {
