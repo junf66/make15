@@ -59,7 +59,12 @@
   function calcOp(a, b, op) {
     switch (op) {
       case '+': return a + b;
-      case '-': return a - b;
+      case '-': {
+        // 負の数になる場合は無効
+        const r = a - b;
+        if (r < 0) return null;
+        return r;
+      }
       case '*': return a * b;
       case '/': {
         // 順番に関係なく「絶対値の大きい方 ÷ 絶対値の小さい方」

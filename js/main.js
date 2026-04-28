@@ -150,14 +150,10 @@
     if (UI.isPassSelecting()) return;
     if (src.kind !== 'card') return;
 
-    // card → card：場2枚を合体（runningが無い時のみ）
-    if (dst.kind === 'card') {
-      if (state.running) {
-        UI.flashFail('計算結果にドロップして合体してください');
-        return;
-      }
-      openPicker(src.value, dst.value, x, y, (op) => {
-        const r = Game.combineFields(state, src.uid, op, dst.uid);
+    // running があるとき：source を running に足す（dst が card でも running でも同じ扱い）
+    if (state.running) {
+      openPicker(state.running.value, src.value, x, y, (op) => {
+        const r = Game.addRunning(state, src.uid, op);
         if (!r.ok) { UI.flashFail(r.error); return; }
         UI.flashCombine(r.running.value);
         UI.flashOp(op);
@@ -167,10 +163,10 @@
       return;
     }
 
-    // card → running：計算結果に足す
-    if (dst.kind === 'running' && state.running) {
-      openPicker(state.running.value, src.value, x, y, (op) => {
-        const r = Game.addRunning(state, src.uid, op);
+    // running が無いとき：場2枚を合体して新しい running にする
+    if (dst.kind === 'card') {
+      openPicker(src.value, dst.value, x, y, (op) => {
+        const r = Game.combineFields(state, src.uid, op, dst.uid);
         if (!r.ok) { UI.flashFail(r.error); return; }
         UI.flashCombine(r.running.value);
         UI.flashOp(op);
