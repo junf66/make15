@@ -13,7 +13,7 @@
   const TARGET = 15;
 
   const STORAGE_KEYS = {
-    BEST_SCORE: 'make15_best_score',
+    BEST_SCORE: 'make15_best_stage',
     PLAY_COUNT: 'make15_play_count',
     TOTAL_GAMES: 'make15_total_games',
     SETTINGS: 'make15_settings',

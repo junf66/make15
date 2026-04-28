@@ -116,7 +116,6 @@
 
   function renderHeader(state) {
     $('#stat-stage').textContent = String(state.stage);
-    $('#stat-captured').textContent = String(state.captured);
     $('#stat-best').textContent = String(Game.loadBestScore());
   }
 
@@ -158,14 +157,13 @@
     const banner = $('#end-banner');
     if (!state.finished) { banner.hidden = true; return; }
     banner.hidden = false;
-    const isClear = state.captured >= 15;
-    $('#end-title').textContent = isClear ? 'クリア！' : 'ゲーム終了';
-    $('#end-score').textContent = String(state.captured);
+    $('#end-title').textContent = 'ゲーム終了';
+    $('#end-score').textContent = String(state.stage);
     const best = Game.loadBestScore();
-    const isBest = state.captured > best;
+    const isBest = state.stage > best;
     $('#end-best').textContent = isBest
-      ? '🎉 ベストスコア更新！（前回: ' + best + '）'
-      : 'ベストスコア: ' + best;
+      ? '🎉 ベスト更新！（前回: ' + best + '）'
+      : 'ベスト: ' + best;
   }
 
   // ----- フィードバック -----

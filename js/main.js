@@ -160,7 +160,7 @@
       const r = Game.captureCell(state, targetUid);
       if (!r.ok) return;
       UI.flashSuccess('クリア！');
-      Game.saveBestScore(state.captured);
+      Game.saveBestScore(state.stage);
       rerender();
       afterAction();
     }, 1100);
@@ -188,7 +188,7 @@
       const r = Game.captureCell(state, uid);
       if (r.ok) {
         UI.flashSuccess('クリア！');
-        Game.saveBestScore(state.captured);
+        Game.saveBestScore(state.stage);
         rerender();
         afterAction();
       } else {
@@ -220,7 +220,7 @@
 
   function afterAction() {
     if (state.finished) {
-      Game.saveBestScore(state.captured);
+      Game.saveBestScore(state.stage);
       rerender();
       const banner = document.getElementById('end-banner');
       if (banner) banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
