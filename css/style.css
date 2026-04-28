@@ -759,23 +759,41 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   0% { transform: translate(0, 0) scale(1); opacity: 1; }
   100% { transform: translate(var(--dx), var(--dy)) scale(0.4); opacity: 0; }
 }
-.celebration-emoji {
-  position: absolute;
-  top: -160px;
-  left: 0;
-  transform: translate(-50%, 0);
-  font-size: 120px;
-  line-height: 1;
+.popper-side {
+  position: fixed;
+  top: 38%;
+  font-size: 56px;
   pointer-events: none;
-  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.18));
-  animation: celebration-pop 1.6s ease-out forwards;
+  z-index: 70;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.18));
+  transform-origin: center;
 }
-@keyframes celebration-pop {
-  0%   { transform: translate(-50%, 60px) scale(0.2) rotate(-30deg); opacity: 0; }
-  18%  { transform: translate(-50%, 0)    scale(1.5) rotate(8deg);  opacity: 1; }
-  35%  { transform: translate(-50%, 0)    scale(1.0) rotate(-4deg); opacity: 1; }
-  60%  { transform: translate(-50%, 0)    scale(1.05) rotate(2deg); opacity: 1; }
-  100% { transform: translate(-50%, -80px) scale(0.9) rotate(0);    opacity: 0; }
+.popper-side.popper-left {
+  left: 8px;
+  animation: popper-left 1.4s ease-out forwards;
+}
+.popper-side.popper-right {
+  right: 8px;
+  animation: popper-right 1.4s ease-out forwards;
+}
+@keyframes popper-left {
+  0%   { transform: translate(-80px, 30px) rotate(40deg) scale(0.4); opacity: 0; }
+  18%  { transform: translate(0, 0)        rotate(-25deg) scale(1.2); opacity: 1; }
+  35%  { transform: translate(0, -6px)     rotate(-18deg) scale(1.0); opacity: 1; }
+  55%  { transform: translate(0, 0)        rotate(-22deg) scale(1.05); opacity: 1; }
+  100% { transform: translate(-30px, -40px) rotate(-15deg) scale(0.9); opacity: 0; }
+}
+@keyframes popper-right {
+  0%   { transform: translate(80px, 30px)  rotate(-40deg) scale(0.4); opacity: 0; }
+  18%  { transform: translate(0, 0)        rotate(25deg) scale(1.2);  opacity: 1; }
+  35%  { transform: translate(0, -6px)     rotate(18deg) scale(1.0);  opacity: 1; }
+  55%  { transform: translate(0, 0)        rotate(22deg) scale(1.05); opacity: 1; }
+  100% { transform: translate(30px, -40px) rotate(15deg) scale(0.9);  opacity: 0; }
+}
+@media (min-width: 720px) {
+  .popper-side { font-size: 80px; top: 35%; }
+  .popper-side.popper-left { left: 24px; }
+  .popper-side.popper-right { right: 24px; }
 }
 .confetti {
   position: fixed;

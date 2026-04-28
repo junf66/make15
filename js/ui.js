@@ -179,31 +179,27 @@
     banner.textContent = msg || '＝ 15　獲得！';
     banner.className = 'feedback is-success';
 
-    // 中央に大きなクラッカー絵文字
-    showEmoji('🎉');
-    setTimeout(() => showEmoji('🎊'), 250);
+    // 左右の小さなクラッカー（中央は邪魔しない）
+    sidePoppers();
+    setTimeout(sidePoppers, 700);
 
-    // 多色の紙吹雪を上から降らせる
+    // 紙吹雪：画面上から落とす
     confettiRain();
-
-    // 中央バーストも複数回
-    burst('#D2454D');
-    setTimeout(() => burst('#F4C534'), 260);
-    setTimeout(() => burst('#5C7A4A'), 520);
-    setTimeout(() => burst('#3F8AC4'), 780);
-    setTimeout(() => burst('#D2454D'), 1040);
 
     setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 3500);
   }
 
-  function showEmoji(ch) {
-    const layer = $('#fx');
-    if (!layer) return;
+  function sidePoppers() {
+    spawnPopper('left');
+    spawnPopper('right');
+  }
+
+  function spawnPopper(side) {
     const tag = document.createElement('span');
-    tag.className = 'celebration-emoji';
-    tag.textContent = ch;
-    layer.appendChild(tag);
-    setTimeout(() => tag.remove(), 1800);
+    tag.className = 'popper-side popper-' + side;
+    tag.textContent = '🎉';
+    document.body.appendChild(tag);
+    setTimeout(() => tag.remove(), 1600);
   }
 
   function confettiRain() {
