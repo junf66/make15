@@ -302,10 +302,14 @@
   }
 
   function maybeShowDemo() {
+    let alreadySeen = false;
     try {
-      if (localStorage.getItem('make15_seen_demo')) return;
-      localStorage.setItem('make15_seen_demo', '1');
-    } catch (e) { return; }
+      if (localStorage.getItem('make15_seen_demo')) alreadySeen = true;
+      else localStorage.setItem('make15_seen_demo', '1');
+    } catch (e) {
+      // localStorage が使えない環境（LINE内ブラウザ等）では「初回扱い」で表示
+    }
+    if (alreadySeen) return;
     setTimeout(showDragDemo, 700);
   }
 
