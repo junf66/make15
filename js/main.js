@@ -243,7 +243,6 @@
 
   function onRestartClick() {
     if (!state) return;
-    if (!confirm('今の回（同じ5枚）を最初からやり直しますか？\n（獲得スコアは保持されます）')) return;
     Game.restartRound(state);
     UI.setPassSelecting(false);
     UI.closeOpPicker();
