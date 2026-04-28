@@ -164,7 +164,7 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   background: #FFF5F4;
   border: 2px solid var(--accent);
   cursor: pointer;
-  touch-action: manipulation;
+  touch-action: none;
 }
 .running-card .card-num { color: var(--accent); }
 .running-card.is-target {

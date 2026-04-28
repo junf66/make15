@@ -83,20 +83,24 @@
 
   function onPointerDown(e) {
     if (e.button != null && e.button !== 0) return;
-    // 通常カードのみドラッグソース。running-cardはタップ専用
+    // ×（リセット）の上はドラッグ対象外
+    if (e.target.closest && e.target.closest('[data-role="reset"]')) return;
     const cardBtn = e.target.closest && e.target.closest('.card');
-    if (!cardBtn || cardBtn.classList.contains('running-card')) return;
+    if (!cardBtn) return;
     e.preventDefault();
     pStart = { x: e.clientX, y: e.clientY };
-    pSrc = { kind: 'card', uid: cardBtn.dataset.uid, value: Number(cardBtn.dataset.value) };
+    if (cardBtn.classList.contains('running-card')) {
+      pSrc = { kind: 'running', value: state.running ? state.running.value : 0 };
+    } else {
+      pSrc = { kind: 'card', uid: cardBtn.dataset.uid, value: Number(cardBtn.dataset.value) };
+    }
     dragging = false;
     activePointerId = e.pointerId;
     try { cardBtn.setPointerCapture(e.pointerId); } catch (_) {}
   }
 
   function onTouchStart(e) {
-    const c = e.target.closest('.card');
-    if (c && !c.classList.contains('running-card')) e.preventDefault();
+    if (e.target.closest('.card')) e.preventDefault();
   }
 
   function onPointerMove(e) {
@@ -148,6 +152,21 @@
 
   function handleDrop(src, dst, x, y) {
     if (UI.isPassSelecting()) return;
+
+    // running → card：dstの場カードを running に足す
+    if (src.kind === 'running' && dst.kind === 'card' && state.running) {
+      openPicker(state.running.value, dst.value, x, y, (op) => {
+        const r = Game.addRunning(state, dst.uid, op);
+        if (!r.ok) { UI.flashFail(r.error); return; }
+        UI.flashCombine(r.running.value);
+        UI.flashOp(op);
+        rerender();
+        autoCaptureIfReady();
+      });
+      return;
+    }
+
+    // ここから先は src が card の場合のみ
     if (src.kind !== 'card') return;
 
     // running があるとき：source を running に足す（dst が card でも running でも同じ扱い）
