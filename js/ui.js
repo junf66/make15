@@ -204,21 +204,21 @@
   }
 
   function confettiRain() {
-    const colors = ['#D2454D', '#F4C534', '#5C7A4A', '#3F8AC4', '#E08AAB', '#FFFFFF'];
-    const total = 80;
+    const total = 60;
     for (let i = 0; i < total; i++) {
       setTimeout(() => {
         const c = document.createElement('span');
-        c.className = 'confetti';
+        c.className = 'strawberry-rain';
+        c.textContent = '🍓';
         c.style.left = (Math.random() * 100) + 'vw';
-        c.style.background = colors[Math.floor(Math.random() * colors.length)];
+        const size = 18 + Math.random() * 22;
+        c.style.fontSize = size + 'px';
         c.style.setProperty('--tx', (Math.random() * 240 - 120) + 'px');
         c.style.setProperty('--rot', ((Math.random() * 720) + 360) + 'deg');
-        c.style.animationDuration = (2.2 + Math.random() * 1.6) + 's';
-        if (Math.random() < 0.4) c.classList.add('confetti-square');
+        c.style.animationDuration = (2.4 + Math.random() * 1.8) + 's';
         document.body.appendChild(c);
         setTimeout(() => c.remove(), 4500);
-      }, i * 25);
+      }, i * 35);
     }
   }
   function flashCombine(value) {

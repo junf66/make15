@@ -738,6 +738,22 @@ body.is-dragging { user-select: none; cursor: grabbing; }
 .modal-inner ul { padding-left: 1.3em; margin: 6px 0; }
 .modal-inner li { margin: 4px 0; font-size: 13px; }
 .modal-inner .btn.modal-close { font-size: 14px; }
+.modal-origin-h {
+  font-family: var(--serif);
+  font-size: 14px;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+.modal-origin {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink);
+  background: #FFF5F4;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin: 0;
+}
 .modal-close {
   position: absolute;
   top: 8px;
@@ -880,22 +896,15 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   .popper-side.popper-left { left: 24px; }
   .popper-side.popper-right { right: 24px; }
 }
-.confetti {
+.strawberry-rain {
   position: fixed;
-  top: -24px;
-  width: 10px;
-  height: 14px;
+  top: -32px;
   pointer-events: none;
   z-index: 60;
   --tx: 0px;
   --rot: 720deg;
   animation: confetti-fall 2.6s linear forwards;
-  border-radius: 2px;
-}
-.confetti.confetti-square {
-  width: 12px;
-  height: 12px;
-  border-radius: 1px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
 }
 @keyframes confetti-fall {
   0% { transform: translate(0, 0) rotate(0); opacity: 1; }
