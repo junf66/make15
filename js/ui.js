@@ -81,7 +81,6 @@
   // ----- 描画 -----
   function renderAll(state) {
     renderHeader(state);
-    renderRunning(state);
     renderField(state);
     renderControls(state);
     renderEnd(state);
@@ -93,40 +92,16 @@
     $('#stat-best').textContent = String(Game.loadBestScore());
   }
 
-  function renderRunning(state) {
-    const root = $('#running');
-    root.innerHTML = '';
-    if (!state.running) {
-      root.classList.remove('is-target');
-      root.classList.add('is-empty');
-      root.dataset.has = 'false';
-      root.appendChild(el('span', { class: 'running-empty' },
-        'カードをここへドラッグ／カードどうしを重ねて合体'));
-      return;
-    }
-    root.classList.remove('is-empty');
-    root.dataset.has = 'true';
-    const v = state.running.value;
-    if (v === TARGET) root.classList.add('is-target');
-    else root.classList.remove('is-target');
-    root.appendChild(el('span', { class: 'running-num' }, String(v)));
-    root.appendChild(el('span', { class: 'running-weight' }, '使った枚数 ' + state.running.weight));
-    if (v === TARGET) {
-      root.appendChild(el('span', { class: 'running-grab' }, 'タップで獲得'));
-    }
-    const reset = el('button', {
-      type: 'button',
-      class: 'running-reset',
-      'aria-label': '計算を捨てる',
-      dataset: { role: 'reset' },
-    }, '×');
-    root.appendChild(reset);
-  }
-
   function renderField(state) {
     const root = $('#field');
     root.innerHTML = '';
-    for (const card of state.field) {
+    for (let i = 0; i < state.field.length; i++) {
+      // 計算中の値が表示されているスロット
+      if (state.running && state.runningSlot === i) {
+        root.appendChild(makeRunningCell(state));
+        continue;
+      }
+      const card = state.field[i];
       if (card == null) {
         root.appendChild(el('div', { class: 'card-empty', 'aria-hidden': 'true' }));
         continue;
@@ -141,6 +116,32 @@
       ]);
       root.appendChild(node);
     }
+  }
+
+  function makeRunningCell(state) {
+    const v = state.running.value;
+    const w = state.running.weight;
+    const cls = ['card', 'running-card'];
+    if (v === TARGET) cls.push('is-target');
+    const reset = el('span', {
+      class: 'running-reset',
+      'data-role': 'reset',
+      'aria-label': '計算を捨てる',
+    }, '×');
+    const node = el('div', {
+      class: cls.join(' '),
+      role: 'button',
+      tabindex: '0',
+      'data-running': 'true',
+      'data-value': String(v),
+      'aria-label': '計算中の値 ' + v,
+    }, [
+      reset,
+      el('span', { class: 'card-num' }, String(v)),
+      el('span', { class: 'running-weight' }, '×' + w),
+      v === TARGET ? el('span', { class: 'running-grab' }, '獲得') : null,
+    ]);
+    return node;
   }
 
   function renderControls(state) {

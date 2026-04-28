@@ -36,6 +36,7 @@
       field: field,
       discard: [],
       running: null,        // { value, weight } または null
+      runningSlot: null,    // running が場のどのスロットに表示されているか
       captured: 0,
       finished: false,
       lastEvent: null,
@@ -85,20 +86,8 @@
     state.field[ia] = null;
     state.field[ib] = null;
     state.running = { value: v, weight: 2 };
+    state.runningSlot = Math.min(ia, ib);
     state.lastEvent = { type: 'combine', value: v, op: op };
-    checkEnd(state);
-    return { ok: true, running: state.running };
-  }
-
-  function initRunning(state, uid) {
-    if (state.finished) return { ok: false, error: 'ゲーム終了' };
-    if (state.running) return { ok: false, error: '計算中の値が既にあります' };
-    const idx = state.field.findIndex(c => c && c.uid === uid);
-    if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
-    const card = state.field[idx];
-    state.field[idx] = null;
-    state.running = { value: card.value, weight: 1 };
-    state.lastEvent = { type: 'initRunning', value: card.value };
     checkEnd(state);
     return { ok: true, running: state.running };
   }
@@ -128,6 +117,7 @@
     const w = state.running.weight;
     state.captured += w;
     state.running = null;
+    state.runningSlot = null;
     refill(state);
     state.lastEvent = { type: 'capture', weight: w };
     checkEnd(state);
@@ -139,6 +129,7 @@
     if (state.finished) return false;
     if (!state.running) return false;
     state.running = null;
+    state.runningSlot = null;
     refill(state);
     state.lastEvent = { type: 'resetRunning' };
     checkEnd(state);
@@ -233,7 +224,7 @@
 
   global.M15 = global.M15 || {};
   global.M15.Game = {
-    createGame, combineFields, initRunning, addRunning, captureRunning, resetRunning, captureCard, pass,
+    createGame, combineFields, addRunning, captureRunning, resetRunning, captureCard, pass,
     previews, calcOp,
     loadBestScore, saveBestScore, incrementGameCount, loadSettings, saveSettings,
     CONSTANTS: { FIELD_SIZE, TARGET },
