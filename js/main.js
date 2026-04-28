@@ -287,7 +287,7 @@
       }
       localStorage.setItem('make15_pwa_hint_seen', String(Date.now()));
     } catch (e) { return; }
-    setTimeout(showIosPwaHint, 1200);
+    setTimeout(showIosPwaHint, 30000);
   }
 
   function showIosPwaHint() {
