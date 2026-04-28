@@ -753,7 +753,7 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.28));
   --dx: 0px;
   --dy: 0px;
-  animation: demo-drag 3s ease-in-out forwards;
+  animation: demo-drag 5s ease-in-out forwards;
 }
 @keyframes demo-drag {
   0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
@@ -779,7 +779,7 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   pointer-events: none;
   z-index: 80;
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-  animation: demo-hint 3s ease-in-out forwards;
+  animation: demo-hint 5s ease-in-out forwards;
 }
 @keyframes demo-hint {
   0%, 100% { opacity: 0; }

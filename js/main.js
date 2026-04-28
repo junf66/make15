@@ -299,13 +299,13 @@
     finger.style.setProperty('--dx', (bx - ax) + 'px');
     finger.style.setProperty('--dy', (by - ay) + 'px');
     document.body.appendChild(finger);
-    setTimeout(() => finger.remove(), 3000);
+    setTimeout(() => finger.remove(), 5000);
 
     const hint = document.createElement('div');
     hint.className = 'demo-hint';
     hint.textContent = 'カードを別カードへドラッグ';
     document.body.appendChild(hint);
-    setTimeout(() => hint.remove(), 3000);
+    setTimeout(() => hint.remove(), 5000);
   }
 
   if (document.readyState === 'loading') {
