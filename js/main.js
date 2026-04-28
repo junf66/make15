@@ -74,8 +74,8 @@
     const card = el.closest && el.closest('.card');
     if (card) return { kind: 'card', uid: card.dataset.uid, value: Number(card.dataset.value) };
     const running = el.closest && el.closest('#running');
-    if (running && running.dataset.has === 'true') {
-      return { kind: 'running', value: state.running ? state.running.value : 0 };
+    if (running) {
+      return { kind: 'running', value: state.running ? state.running.value : null };
     }
     return null;
   }
@@ -182,8 +182,15 @@
       return;
     }
 
-    // (2) card → running：計算中の値に足す
+    // (2) card → running：計算中の値が空なら初期化、有るなら足す
     if (src.kind === 'card' && dst.kind === 'running') {
+      if (!state.running) {
+        const r = Game.initRunning(state, src.uid);
+        if (!r.ok) { UI.flashFail(r.error); return; }
+        UI.flashCombine(r.running.value);
+        rerender();
+        return;
+      }
       openPicker(state.running.value, src.value, x, y, (op) => {
         const r = Game.addRunning(state, src.uid, op);
         if (!r.ok) { UI.flashFail(r.error); return; }
@@ -194,7 +201,7 @@
       return;
     }
 
-    // (3) running → card：上と同じ意味（runningにcardを足す）
+    // (3) running → card：runningにcardを足す
     if (src.kind === 'running' && dst.kind === 'card') {
       openPicker(state.running.value, dst.value, x, y, (op) => {
         const r = Game.addRunning(state, dst.uid, op);
@@ -228,25 +235,10 @@
       return;
     }
 
-    // 値が15のカード（running無し）はタップで獲得
-    if (!state.running && card.value === TARGET) {
-      const r = Game.captureCard(state, uid);
-      if (r.ok) {
-        UI.flashSuccess('+1 獲得！');
-        Game.saveBestScore(state.captured);
-        rerender();
-        afterAction();
-      } else {
-        UI.flashFail(r.error);
-      }
-      return;
-    }
-
-    // それ以外
     if (state.running) {
       UI.flashFail('カードを計算結果にドラッグしてください');
     } else {
-      UI.flashFail('2枚をドラッグして合体させてください');
+      UI.flashFail('カードをBOXまたは別のカードにドラッグ');
     }
   }
 

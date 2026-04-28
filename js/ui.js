@@ -101,7 +101,7 @@
       root.classList.add('is-empty');
       root.dataset.has = 'false';
       root.appendChild(el('span', { class: 'running-empty' },
-        '2枚のカードをドラッグして合体させてください'));
+        'カードをここへドラッグ／カードどうしを重ねて合体'));
       return;
     }
     root.classList.remove('is-empty');
@@ -131,17 +131,13 @@
       return;
     }
     for (const card of state.field) {
-      const isTarget = card.value === TARGET && !state.running;
-      const cls = ['card'];
-      if (isTarget) cls.push('is-target');
       const node = el('button', {
         type: 'button',
-        class: cls.join(' '),
+        class: 'card',
         dataset: { uid: card.uid, value: String(card.value) },
-        'aria-label': isTarget ? '15のカード（タップで獲得）' : 'カード ' + card.value,
+        'aria-label': 'カード ' + card.value,
       }, [
         el('span', { class: 'card-num' }, String(card.value)),
-        isTarget ? el('span', { class: 'card-grab' }, '獲得') : null,
       ]);
       root.appendChild(node);
     }

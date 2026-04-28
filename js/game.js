@@ -85,6 +85,21 @@
     return { ok: true, running: state.running };
   }
 
+  // 空の状態でカードを計算中の値に入れる（初期化、weight=1）
+  function initRunning(state, uid) {
+    if (state.finished) return { ok: false, error: 'ゲーム終了' };
+    if (state.running) return { ok: false, error: '計算中の値が既にあります' };
+    const idx = state.field.findIndex(c => c.uid === uid);
+    if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
+    const card = state.field[idx];
+    state.field.splice(idx, 1);
+    state.running = { value: card.value, weight: 1 };
+    refill(state);
+    state.lastEvent = { type: 'initRunning', value: card.value };
+    checkEnd(state);
+    return { ok: true, running: state.running };
+  }
+
   // 計算中の値に場のカードを足す
   function addRunning(state, uid, op) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
@@ -210,7 +225,7 @@
 
   global.M15 = global.M15 || {};
   global.M15.Game = {
-    createGame, combineFields, addRunning, captureRunning, resetRunning, captureCard, pass,
+    createGame, combineFields, initRunning, addRunning, captureRunning, resetRunning, captureCard, pass,
     previews, calcOp,
     loadBestScore, saveBestScore, incrementGameCount, loadSettings, saveSettings,
     CONSTANTS: { FIELD_SIZE, TARGET },
