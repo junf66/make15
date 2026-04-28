@@ -47,7 +47,7 @@
       field: field,
       discard: [],
       captured: 0,
-      stage: 1,
+      stage: 0,
       finished: false,
       lastEvent: null,
       originalSequence: original,
@@ -167,7 +167,7 @@
     return true;
   }
 
-  // ギブアップ：場の全カードを捨てて、新しい5枚を引く
+  // ギブアップ：場の全カードを捨てて、新しい5枚を引く（ステージは0に戻る）
   function giveUp(state) {
     if (state.finished) return false;
     for (let i = 0; i < state.field.length; i++) {
@@ -177,6 +177,7 @@
       }
     }
     refill(state);
+    state.stage = 0;
     snapshotRound(state);
     state.lastEvent = { type: 'giveUp' };
     checkEnd(state);

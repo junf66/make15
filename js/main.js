@@ -210,7 +210,7 @@
 
   function onGiveUp() {
     if (!fieldHasCards()) return;
-    if (!confirm('現在の場をすべて捨てて、新しい5枚を引きます。よろしいですか？\n（獲得スコアは保持されます）')) return;
+    if (!confirm('新しい5枚を引きます。よろしいですか？\n（STAGEは0に戻ります）')) return;
     Game.giveUp(state);
     UI.setPassSelecting(false);
     UI.closeOpPicker();
