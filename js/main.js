@@ -22,7 +22,7 @@
 
   // ----- ポインタ／ドラッグ検出 -----
   // ターゲット: 場のカード or 計算中の値タイル（"running"）
-  const DRAG_THRESHOLD = 12;
+  const DRAG_THRESHOLD = 8;
   let pStart = null;
   let pSrc = null;          // { kind: 'card'|'running', uid?: string, value: number }
   let activePointerId = null;
@@ -77,10 +77,12 @@
   }
 
   function onPointerDown(e) {
+    // 主クリックのみ
+    if (e.button != null && e.button !== 0) return;
     // 場のカード
     const cardBtn = e.target.closest && e.target.closest('.card');
     if (cardBtn) {
-      if (e.pointerType !== 'mouse') e.preventDefault();
+      e.preventDefault();
       pStart = { x: e.clientX, y: e.clientY };
       pSrc = { kind: 'card', uid: cardBtn.dataset.uid, value: Number(cardBtn.dataset.value) };
       dragging = false;
@@ -93,7 +95,7 @@
     if (running && state.running) {
       // ×ボタン（リセット）はドラッグ対象外
       if (e.target.closest('[data-role="reset"]')) return;
-      if (e.pointerType !== 'mouse') e.preventDefault();
+      e.preventDefault();
       pStart = { x: e.clientX, y: e.clientY };
       pSrc = { kind: 'running', value: state.running.value };
       dragging = false;
@@ -311,9 +313,11 @@
     running.addEventListener('touchstart', onTouchStart, { passive: false });
     field.addEventListener('contextmenu', e => e.preventDefault());
     running.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('pointermove', onPointerMove);
-    document.addEventListener('pointerup', onPointerUp);
-    document.addEventListener('pointercancel', onPointerCancel);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerCancel);
+    field.addEventListener('dragstart', e => e.preventDefault());
+    running.addEventListener('dragstart', e => e.preventDefault());
     field.addEventListener('click', onCardClick);
     running.addEventListener('click', onRunningClick);
 

@@ -289,6 +289,7 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
+  -webkit-user-drag: none;
   touch-action: none;
 }
 .card * {
