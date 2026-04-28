@@ -244,7 +244,18 @@
 
     const label = document.createElement('div');
     label.className = 'op-picker-label';
-    label.textContent = srcVal + ' ? ' + dstVal;
+    const a = document.createElement('span');
+    a.className = 'op-picker-num';
+    a.textContent = String(srcVal);
+    const slot = document.createElement('span');
+    slot.className = 'op-picker-slot';
+    slot.textContent = '？';
+    const b = document.createElement('span');
+    b.className = 'op-picker-num';
+    b.textContent = String(dstVal);
+    label.appendChild(a);
+    label.appendChild(slot);
+    label.appendChild(b);
     card.appendChild(label);
 
     const grid = document.createElement('div');

@@ -370,13 +370,33 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   padding: 14px;
 }
 .op-picker-label {
-  text-align: center;
-  font-family: var(--serif);
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-family: var(--sans);
+}
+.op-picker-num {
+  font-size: 24px;
   font-weight: 700;
   color: var(--ink);
-  margin-bottom: 10px;
   font-variant-numeric: tabular-nums;
+  min-width: 1.5em;
+  text-align: center;
+}
+.op-picker-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 2px dashed var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 700;
+  background: #FFF5F4;
 }
 .op-picker-grid {
   display: grid;
