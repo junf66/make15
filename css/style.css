@@ -448,8 +448,17 @@ body.is-dragging { user-select: none; cursor: grabbing; }
 }
 .feedback.is-success {
   color: var(--accent);
-  font-size: 22px;
-  animation: pop 0.4s ease;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 0 #fff, 0 4px 12px rgba(210,69,77,0.25);
+  animation: pop 0.4s ease, success-shake 0.6s ease 0.4s;
+}
+@keyframes success-shake {
+  0%, 100% { transform: scale(1) rotate(0); }
+  25% { transform: scale(1.05) rotate(-2deg); }
+  50% { transform: scale(1.1) rotate(2deg); }
+  75% { transform: scale(1.05) rotate(-1deg); }
 }
 .feedback.is-fail { color: var(--muted); }
 @keyframes pop {
@@ -747,6 +756,46 @@ body.is-dragging { user-select: none; cursor: grabbing; }
 @keyframes fx-burst {
   0% { transform: translate(0, 0) scale(1); opacity: 1; }
   100% { transform: translate(var(--dx), var(--dy)) scale(0.4); opacity: 0; }
+}
+.celebration-emoji {
+  position: absolute;
+  top: -160px;
+  left: 0;
+  transform: translate(-50%, 0);
+  font-size: 120px;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.18));
+  animation: celebration-pop 1.6s ease-out forwards;
+}
+@keyframes celebration-pop {
+  0%   { transform: translate(-50%, 60px) scale(0.2) rotate(-30deg); opacity: 0; }
+  18%  { transform: translate(-50%, 0)    scale(1.5) rotate(8deg);  opacity: 1; }
+  35%  { transform: translate(-50%, 0)    scale(1.0) rotate(-4deg); opacity: 1; }
+  60%  { transform: translate(-50%, 0)    scale(1.05) rotate(2deg); opacity: 1; }
+  100% { transform: translate(-50%, -80px) scale(0.9) rotate(0);    opacity: 0; }
+}
+.confetti {
+  position: fixed;
+  top: -24px;
+  width: 10px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 60;
+  --tx: 0px;
+  --rot: 720deg;
+  animation: confetti-fall 2.6s linear forwards;
+  border-radius: 2px;
+}
+.confetti.confetti-square {
+  width: 12px;
+  height: 12px;
+  border-radius: 1px;
+}
+@keyframes confetti-fall {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translate(var(--tx), 110vh) rotate(var(--rot)); opacity: 0; }
 }
 
 /* ----- Narrow phones ----- */

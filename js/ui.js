@@ -78,6 +78,34 @@
   }
   function playFail() { if (soundOn) beep({ freq: 220, duration: 0.18, type: 'sawtooth', gain: 0.05, sweep: -80 }); }
 
+  // クラッカー音（ホワイトノイズの鋭い破裂）
+  function playPopper() {
+    if (!soundOn) return;
+    const ctx = getAudio();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') { try { ctx.resume(); } catch (e) {} }
+    const dur = 0.45;
+    const samples = Math.floor(ctx.sampleRate * dur);
+    const buffer = ctx.createBuffer(1, samples, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < samples; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / samples, 1.5);
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2400;
+    filter.Q.value = 0.8;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.32, ctx.currentTime + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    noise.connect(filter).connect(gain).connect(ctx.destination);
+    noise.start();
+    noise.stop(ctx.currentTime + dur + 0.05);
+  }
+
   // ----- 描画 -----
   function renderAll(state) {
     renderHeader(state);
@@ -141,15 +169,60 @@
 
   // ----- フィードバック -----
   function flashSuccess(msg) {
+    playPopper();
     playSuccess();
+    setTimeout(playPopper, 220);
+    setTimeout(playPopper, 460);
+    setTimeout(playSuccess, 800);
+
     const banner = $('#feedback');
     banner.textContent = msg || '＝ 15　獲得！';
     banner.className = 'feedback is-success';
+
+    // 中央に大きなクラッカー絵文字
+    showEmoji('🎉');
+    setTimeout(() => showEmoji('🎊'), 250);
+
+    // 多色の紙吹雪を上から降らせる
+    confettiRain();
+
+    // 中央バーストも複数回
     burst('#D2454D');
-    setTimeout(() => burst('#D2454D'), 350);
-    setTimeout(() => { burst('#5C7A4A'); playSuccess(); }, 750);
-    setTimeout(() => burst('#D2454D'), 1300);
-    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 3200);
+    setTimeout(() => burst('#F4C534'), 260);
+    setTimeout(() => burst('#5C7A4A'), 520);
+    setTimeout(() => burst('#3F8AC4'), 780);
+    setTimeout(() => burst('#D2454D'), 1040);
+
+    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 3500);
+  }
+
+  function showEmoji(ch) {
+    const layer = $('#fx');
+    if (!layer) return;
+    const tag = document.createElement('span');
+    tag.className = 'celebration-emoji';
+    tag.textContent = ch;
+    layer.appendChild(tag);
+    setTimeout(() => tag.remove(), 1800);
+  }
+
+  function confettiRain() {
+    const colors = ['#D2454D', '#F4C534', '#5C7A4A', '#3F8AC4', '#E08AAB', '#FFFFFF'];
+    const total = 80;
+    for (let i = 0; i < total; i++) {
+      setTimeout(() => {
+        const c = document.createElement('span');
+        c.className = 'confetti';
+        c.style.left = (Math.random() * 100) + 'vw';
+        c.style.background = colors[Math.floor(Math.random() * colors.length)];
+        c.style.setProperty('--tx', (Math.random() * 240 - 120) + 'px');
+        c.style.setProperty('--rot', ((Math.random() * 720) + 360) + 'deg');
+        c.style.animationDuration = (2.2 + Math.random() * 1.6) + 's';
+        if (Math.random() < 0.4) c.classList.add('confetti-square');
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 4500);
+      }, i * 25);
+    }
   }
   function flashCombine(value) {
     playCombine();

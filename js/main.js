@@ -224,15 +224,6 @@
 
   function onRules() { UI.openModal('rules-modal'); }
 
-  function onSoundToggle() {
-    settings.sound = !settings.sound;
-    Game.saveSettings(settings);
-    UI.setSoundOn(settings.sound);
-    const btn = document.getElementById('btn-sound');
-    btn.textContent = settings.sound ? '🔊' : '🔇';
-    btn.setAttribute('aria-pressed', settings.sound ? 'true' : 'false');
-  }
-
   function onNewClick() {
     if (state && !state.finished && state.captured === 0 && allOriginalCards()) {
       newGame();
@@ -271,7 +262,6 @@
     document.getElementById('btn-rules').addEventListener('click', onRules);
     document.getElementById('btn-new').addEventListener('click', onNewClick);
     document.getElementById('btn-end-new').addEventListener('click', newGame);
-    document.getElementById('btn-sound').addEventListener('click', onSoundToggle);
 
     document.querySelectorAll('.modal-close').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -287,9 +277,6 @@
   }
 
   function init() {
-    UI.setSoundOn(settings.sound);
-    const sBtn = document.getElementById('btn-sound');
-    sBtn.textContent = settings.sound ? '🔊' : '🔇';
     bindEvents();
     newGame();
   }
