@@ -810,7 +810,7 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   align-items: center;
   gap: 2px;
   white-space: nowrap;
-  animation: ios-hint-fade 5.4s ease forwards;
+  animation: ios-hint-fade 8s ease forwards;
 }
 /* speech-bubble tail（下向き） */
 .ios-pwa-hint::before,
@@ -858,8 +858,8 @@ body.is-dragging { user-select: none; cursor: grabbing; }
 }
 @keyframes ios-hint-fade {
   0%   { opacity: 0; transform: translate(-50%, 20px) scale(0.9); }
-  10%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
-  88%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  6%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  92%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
   100% { opacity: 0; transform: translate(-50%, 16px) scale(0.95); }
 }
 

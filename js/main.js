@@ -298,7 +298,7 @@
       '<span class="ios-pwa-sub">下の 共有ボタンから</span>' +
       '<span class="ios-pwa-arrow">↓</span>';
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 5400);
+    setTimeout(() => el.remove(), 8000);
   }
 
   function maybeShowDemo() {
