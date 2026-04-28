@@ -53,20 +53,27 @@
   <p>本サイトのテキスト・コード・グラフィックの著作権は運営者に帰属します。無断転載・複製はご遠慮ください。引用される場合は出典を明記の上、リンクを設置してください。</p>
 
   <h3>お問い合わせ</h3>
-  <p>ご意見・ご感想・不具合報告などは下記フォームからお送りください。送信ボタンを押すと、ご利用のメールアプリが起動して内容が貼り付けられます。</p>
+  <p>ご意見・ご感想・不具合報告などは下記フォームからお送りください。</p>
+
+  <div id="contact-success" class="contact-success" data-fs-success hidden>
+    送信ありがとうございました。返信が必要な場合は記載いただいたメール宛にお返事します。
+  </div>
+  <div id="contact-error" class="contact-error" data-fs-error hidden></div>
 
   <form id="contact-form" class="contact-form" novalidate>
     <label for="cf-name">お名前（任意）</label>
-    <input id="cf-name" name="name" type="text" autocomplete="name" />
+    <input id="cf-name" name="name" type="text" autocomplete="name" data-fs-field />
 
     <label for="cf-email">メールアドレス（返信が必要な場合）</label>
-    <input id="cf-email" name="email" type="email" autocomplete="email" />
+    <input id="cf-email" name="email" type="email" autocomplete="email" data-fs-field />
+    <span class="contact-error-inline" data-fs-error="email"></span>
 
     <label for="cf-msg">お問い合わせ内容</label>
-    <textarea id="cf-msg" name="message" rows="6" required></textarea>
+    <textarea id="cf-msg" name="message" rows="6" required data-fs-field></textarea>
+    <span class="contact-error-inline" data-fs-error="message"></span>
 
-    <button type="submit" class="btn btn-primary">メールアプリで送信</button>
-    <p class="contact-note">※ 送信ボタンを押すと、ご利用のメールアプリが起動して内容が貼り付けられます。</p>
+    <button type="submit" class="btn btn-primary" data-fs-submit-btn>送信</button>
+    <p class="contact-note">※ 内容を確認してこのページから直接送信されます。</p>
   </form>
 
   <p class="lp-related" style="margin-top:32px;"><a href="/">← トップへ戻る</a></p>
@@ -78,25 +85,10 @@
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
-  (function () {
-    var TO = 'make15.jp@gmail.com';
-    var form = document.getElementById('contact-form');
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var name = form.name.value.trim();
-      var email = form.email.value.trim();
-      var msg = form.message.value.trim();
-      if (!msg) { alert('お問い合わせ内容を入力してください。'); return; }
-      var subject = encodeURIComponent('Make15 お問い合わせ');
-      var body = encodeURIComponent(
-        'お名前: ' + (name || '（記載なし）') + '\n' +
-        'メール: ' + (email || '（記載なし）') + '\n\n' +
-        '----\n' + msg + '\n'
-      );
-      window.location.href = 'mailto:' + TO + '?subject=' + subject + '&body=' + body;
-    });
-  })();
+  window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); };
+  formspree('initForm', { formElement: '#contact-form', formId: 'xaqagbln' });
 </script>
+<script src="https://unpkg.com/@formspree/ajax@1" defer></script>
 
 </body>
 </html>

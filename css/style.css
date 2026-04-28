@@ -656,6 +656,36 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   margin-top: 8px;
 }
 .contact-note a { color: var(--accent); }
+.contact-success {
+  padding: 12px 14px;
+  border: 1.5px solid var(--moss);
+  background: #F2F6EC;
+  border-radius: var(--radius);
+  color: #3a5530;
+  font-weight: 700;
+  margin: 12px 0;
+}
+.contact-error {
+  padding: 12px 14px;
+  border: 1.5px solid var(--accent);
+  background: #FFF5F4;
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-weight: 700;
+  margin: 12px 0;
+}
+.contact-error-inline {
+  display: block;
+  color: var(--accent);
+  font-size: 12px;
+  min-height: 1em;
+  margin-top: 2px;
+}
+.contact-form input[aria-invalid="true"],
+.contact-form textarea[aria-invalid="true"] {
+  border-color: var(--accent);
+  background: #FFF5F4;
+}
 
 /* ----- Modal ----- */
 .modal {
