@@ -229,18 +229,6 @@
 
   function onRules() { UI.openModal('rules-modal'); }
 
-  function onNewClick() {
-    if (state && !state.finished && state.captured === 0 && allOriginalCards()) {
-      newGame();
-    } else if (confirm('新しいゲーム（カードもシャッフルし直し）を始めますか？')) {
-      newGame();
-    }
-  }
-
-  function allOriginalCards() {
-    return state.field.every(c => !c || c.weight === 1);
-  }
-
   function onRestartClick() {
     if (!state) return;
     Game.restartRound(state);
@@ -264,7 +252,6 @@
     document.getElementById('btn-giveup').addEventListener('click', onGiveUp);
     document.getElementById('btn-restart').addEventListener('click', onRestartClick);
     document.getElementById('btn-rules').addEventListener('click', onRules);
-    document.getElementById('btn-new').addEventListener('click', onNewClick);
     document.getElementById('btn-end-new').addEventListener('click', newGame);
 
     document.querySelectorAll('.modal-close').forEach(btn => {
