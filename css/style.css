@@ -395,14 +395,20 @@ body.is-dragging { user-select: none; cursor: grabbing; }
 }
 .op-picker-btn:hover:not(:disabled) { background: var(--soft); border-color: var(--moss); }
 .op-picker-btn:active:not(:disabled) { transform: scale(0.94); }
-.op-picker-sym { font-size: 22px; font-weight: 700; color: var(--ink); }
 .op-picker-val {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 700;
-  color: var(--muted);
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-.op-picker-btn:disabled .op-picker-val { color: var(--card-border); }
+.op-picker-sym {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.op-picker-btn:disabled .op-picker-val,
+.op-picker-btn:disabled .op-picker-sym { color: var(--card-border); }
 .op-picker-btn.is-target {
   border-color: var(--accent);
   background: #FFF5F4;

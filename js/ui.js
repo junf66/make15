@@ -329,8 +329,8 @@
       num.className = 'op-picker-val';
       num.textContent = valid ? String(v) : '—';
       if (valid && v === TARGET) btn.classList.add('is-target');
-      btn.appendChild(sym);
       btn.appendChild(num);
+      btn.appendChild(sym);
       btn.addEventListener('click', () => {
         if (!valid) return;
         closeOpPicker();
