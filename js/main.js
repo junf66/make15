@@ -159,7 +159,7 @@
       if (cur < 0) return;
       const r = Game.captureCell(state, targetUid);
       if (!r.ok) return;
-      UI.flashSuccess(r.weight + '枚獲得');
+      UI.flashSuccess(r.weight + '枚いちご');
       Game.saveBestScore(state.captured);
       rerender();
       afterAction();
@@ -187,7 +187,7 @@
     if (card.value === TARGET && onlyCell.length === 1 && onlyCell[0].uid === uid) {
       const r = Game.captureCell(state, uid);
       if (r.ok) {
-        UI.flashSuccess(r.weight + '枚獲得');
+        UI.flashSuccess(r.weight + '枚いちご');
         Game.saveBestScore(state.captured);
         rerender();
         afterAction();

@@ -143,7 +143,7 @@
       }, [
         el('span', { class: 'card-num' }, String(card.value)),
         isComputed ? el('span', { class: 'card-weight', 'aria-hidden': 'true' }, '×' + card.weight) : null,
-        isClearable ? el('span', { class: 'card-grab' }, '獲得') : null,
+        isClearable ? el('span', { class: 'card-grab' }, 'いちご') : null,
       ]);
       root.appendChild(node);
     }
