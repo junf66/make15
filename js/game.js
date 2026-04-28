@@ -1,9 +1,9 @@
-// game.js — ゲーム進行ロジック（計算中の値方式）
+// game.js — 場のセルが直接「数値＋重み」を持つモデル
 // ルール:
-//   - 場の2枚をドラッグで合体 → そのカードは消えて、計算結果が「計算中の値」として上に浮く
-//   - さらに場のカードをドラッグして計算中の値と組み合わせると、計算中の値が更新される
-//   - 計算中の値が 15 になったらタップで獲得（スコアは計算中の値に使った枚数）
-//   - パスで場の1枚を捨てて1枚補充
+//   - 場のセルは {uid, value, weight} で、合体するとそのセル位置に新セルができる（重みは合算）
+//   - もう片方のセルは空になる（位置はそのまま）
+//   - セルの値が 15 かつ 重み が 5 のとき、タップで獲得（スコア +5）
+//   - パス：1セルを捨てて山札から1枚補充
 (function (global) {
   'use strict';
 
@@ -21,8 +21,8 @@
   };
 
   let nextCardUid = 0;
-  function newCard(value) {
-    return { uid: 'c' + (++nextCardUid), value: value };
+  function newCard(value, weight) {
+    return { uid: 'c' + (++nextCardUid), value: value, weight: weight || 1 };
   }
 
   function createGame() {
@@ -30,7 +30,6 @@
     return startWithSequence(sequence);
   }
 
-  // 同じカード順で初期化し直す
   function restartGame(state) {
     if (!state || !state.originalSequence) return createGame();
     return startWithSequence(state.originalSequence.slice());
@@ -38,7 +37,7 @@
 
   function startWithSequence(sequence) {
     const original = sequence.slice();
-    const deck = sequence.map(v => newCard(v));
+    const deck = sequence.map(v => newCard(v, 1));
     const field = [];
     for (let i = 0; i < FIELD_SIZE; i++) {
       field.push(deck.length ? deck.shift() : null);
@@ -47,9 +46,6 @@
       deck: deck,
       field: field,
       discard: [],
-      running: null,
-      runningSlot: null,
-      runningSnapshot: null,
       captured: 0,
       finished: false,
       lastEvent: null,
@@ -60,25 +56,22 @@
     return state;
   }
 
-  function cloneCard(c) { return c ? { uid: c.uid, value: c.value } : null; }
+  function cloneCard(c) { return c ? { uid: c.uid, value: c.value, weight: c.weight } : null; }
   function cloneCardArr(arr) { return arr.map(cloneCard); }
 
   function snapshotRound(state) {
     state.roundSnapshot = {
       field: cloneCardArr(state.field),
-      deck: state.deck.map(c => ({ uid: c.uid, value: c.value })),
+      deck: state.deck.map(c => ({ uid: c.uid, value: c.value, weight: c.weight })),
       discard: state.discard.slice(),
     };
   }
 
-  // 現在のラウンドの最初に戻す（獲得スコアは保持）
   function restartRound(state) {
     if (!state.roundSnapshot) return false;
     state.field = cloneCardArr(state.roundSnapshot.field);
-    state.deck = state.roundSnapshot.deck.map(c => ({ uid: c.uid, value: c.value }));
+    state.deck = state.roundSnapshot.deck.map(c => ({ uid: c.uid, value: c.value, weight: c.weight }));
     state.discard = state.roundSnapshot.discard.slice();
-    state.running = null;
-    state.runningSlot = null;
     state.finished = false;
     state.lastEvent = { type: 'restartRound' };
     return true;
@@ -87,13 +80,9 @@
   function calcOp(a, b, op) {
     switch (op) {
       case '+': return a + b;
-      case '-': {
-        // 順番に関係なく「大きい数 − 小さい数」
-        return Math.max(a, b) - Math.min(a, b);
-      }
+      case '-': return Math.max(a, b) - Math.min(a, b);
       case '*': return a * b;
       case '/': {
-        // 順番に関係なく「絶対値の大きい方 ÷ 絶対値の小さい方」
         const absA = Math.abs(a), absB = Math.abs(b);
         let dividend, divisor;
         if (absA >= absB) { dividend = a; divisor = b; }
@@ -115,10 +104,9 @@
     };
   }
 
-  // 場の2枚を合体して計算中の値を作る（計算中の値が無いときのみ可）
-  function combineFields(state, uidA, op, uidB) {
+  // 場の2セルを合体 → 1セルに（重みは合算）
+  function combine(state, uidA, op, uidB) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
-    if (state.running) return { ok: false, error: '計算中の値が既にあります' };
     if (uidA === uidB) return { ok: false, error: '同じカードは選べません' };
     const ia = state.field.findIndex(c => c && c.uid === uidA);
     const ib = state.field.findIndex(c => c && c.uid === uidB);
@@ -127,84 +115,35 @@
     const b = state.field[ib];
     const v = calcOp(a.value, b.value, op);
     if (v === null) return { ok: false, error: '整数で計算できません' };
-    // running を作る前のフィールドをスナップショット（× で戻すため）
-    state.runningSnapshot = { field: cloneCardArr(state.field) };
-    state.field[ia] = null;
-    state.field[ib] = null;
-    state.running = { value: v, weight: 2 };
-    state.runningSlot = Math.min(ia, ib);
-    state.lastEvent = { type: 'combine', value: v, op: op };
+    const result = newCard(v, a.weight + b.weight);
+    const lo = Math.min(ia, ib);
+    const hi = Math.max(ia, ib);
+    state.field[hi] = null;
+    state.field[lo] = result;
+    state.lastEvent = { type: 'combine', value: v, op: op, weight: result.weight };
     checkEnd(state);
-    return { ok: true, running: state.running };
+    return { ok: true, result: result };
   }
 
-  function addRunning(state, uid, op) {
+  // セルを獲得（値=15 かつ 重み=5）
+  function captureCell(state, uid) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
-    if (!state.running) return { ok: false, error: '計算中の値がありません' };
-    const idx = state.field.findIndex(c => c && c.uid === uid);
-    if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
-    const card = state.field[idx];
-    const v = calcOp(state.running.value, card.value, op);
-    if (v === null) return { ok: false, error: '整数で計算できません' };
-    state.field[idx] = null;
-    state.running = { value: v, weight: state.running.weight + 1 };
-    state.lastEvent = { type: 'addRunning', value: v, op: op };
-    checkEnd(state);
-    return { ok: true, running: state.running };
-  }
-
-  // 計算中の値を獲得（5枚すべて使い切って 15 のときのみ）。1ラウンド終了 → 場を5枚に補充
-  function captureRunning(state) {
-    if (state.finished) return { ok: false, error: 'ゲーム終了' };
-    if (!state.running) return { ok: false, error: '計算中の値がありません' };
-    if (state.running.value !== TARGET) {
-      return { ok: false, error: '15ではありません（' + state.running.value + '）' };
-    }
-    if (state.running.weight !== FIELD_SIZE) {
-      return { ok: false, error: '5枚すべて使う必要があります（現在 ' + state.running.weight + ' 枚）' };
-    }
-    const w = state.running.weight;
-    state.captured += w;
-    state.running = null;
-    state.runningSlot = null;
-    state.runningSnapshot = null;
-    refill(state);
-    snapshotRound(state);
-    state.lastEvent = { type: 'capture', weight: w };
-    checkEnd(state);
-    return { ok: true, weight: w };
-  }
-
-  // ×：計算をやめて、計算前の場の状態に戻す（使ったカードが戻ってくる）
-  function resetRunning(state) {
-    if (state.finished) return false;
-    if (!state.running) return false;
-    if (state.runningSnapshot) {
-      state.field = cloneCardArr(state.runningSnapshot.field);
-    }
-    state.running = null;
-    state.runningSlot = null;
-    state.runningSnapshot = null;
-    state.lastEvent = { type: 'resetRunning' };
-    checkEnd(state);
-    return true;
-  }
-
-  // 場のカードが既に 15 ならタップで獲得（計算中の値が無い時のみ。1枚分のスコア）
-  function captureCard(state, uid) {
-    if (state.finished) return { ok: false, error: 'ゲーム終了' };
-    if (state.running) return { ok: false, error: 'まずは計算中の値を確定（15）してください' };
     const idx = state.field.findIndex(c => c && c.uid === uid);
     if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
     const card = state.field[idx];
     if (card.value !== TARGET) {
       return { ok: false, error: '15ではありません（' + card.value + '）' };
     }
+    if (card.weight !== FIELD_SIZE) {
+      return { ok: false, error: '5枚すべて使う必要があります（現在 ' + card.weight + ' 枚）' };
+    }
     state.field[idx] = null;
-    state.captured += 1;
-    state.lastEvent = { type: 'capture', weight: 1 };
+    state.captured += FIELD_SIZE;
+    refill(state);
+    snapshotRound(state);
+    state.lastEvent = { type: 'capture', weight: FIELD_SIZE };
     checkEnd(state);
-    return { ok: true, weight: 1 };
+    return { ok: true, weight: FIELD_SIZE };
   }
 
   function pass(state, uid) {
@@ -224,7 +163,6 @@
     return true;
   }
 
-  // 空きスロットに山札から補充
   function refill(state) {
     for (let i = 0; i < state.field.length; i++) {
       if (state.field[i] == null && state.deck.length > 0) {
@@ -235,12 +173,11 @@
 
   function checkEnd(state) {
     const allEmpty = state.field.every(c => c == null);
-    if (state.deck.length === 0 && allEmpty && !state.running) {
+    if (state.deck.length === 0 && allEmpty) {
       state.finished = true;
     }
   }
 
-  // localStorage
   function loadBestScore() {
     try {
       const v = localStorage.getItem(STORAGE_KEYS.BEST_SCORE);
@@ -278,7 +215,8 @@
 
   global.M15 = global.M15 || {};
   global.M15.Game = {
-    createGame, restartGame, restartRound, combineFields, addRunning, captureRunning, resetRunning, captureCard, pass,
+    createGame, restartGame, restartRound,
+    combine, captureCell, pass,
     previews, calcOp,
     loadBestScore, saveBestScore, incrementGameCount, loadSettings, saveSettings,
     CONSTANTS: { FIELD_SIZE, TARGET },

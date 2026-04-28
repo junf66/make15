@@ -96,57 +96,33 @@
     const root = $('#field');
     root.innerHTML = '';
     for (let i = 0; i < state.field.length; i++) {
-      // 計算中の値が表示されているスロット
-      if (state.running && state.runningSlot === i) {
-        root.appendChild(makeRunningCell(state));
-        continue;
-      }
       const card = state.field[i];
       if (card == null) {
         root.appendChild(el('div', { class: 'card-empty', 'aria-hidden': 'true' }));
         continue;
       }
+      const isComputed = card.weight > 1;
+      const isClearable = card.value === TARGET && card.weight === Game.CONSTANTS.FIELD_SIZE;
+      const cls = ['card'];
+      if (isComputed) cls.push('is-computed');
+      if (isClearable) cls.push('is-target');
       const node = el('button', {
         type: 'button',
-        class: 'card',
+        class: cls.join(' '),
         dataset: { uid: card.uid, value: String(card.value) },
-        'aria-label': 'カード ' + card.value,
+        'aria-label': isClearable ? '15のセル（タップで獲得）' : 'カード ' + card.value,
       }, [
         el('span', { class: 'card-num' }, String(card.value)),
+        isComputed ? el('span', { class: 'card-weight', 'aria-hidden': 'true' }, '×' + card.weight) : null,
+        isClearable ? el('span', { class: 'card-grab' }, '獲得') : null,
       ]);
       root.appendChild(node);
     }
   }
 
-  function makeRunningCell(state) {
-    const v = state.running.value;
-    const w = state.running.weight;
-    const cls = ['card', 'running-card'];
-    if (v === TARGET) cls.push('is-target');
-    const reset = el('span', {
-      class: 'running-reset',
-      'data-role': 'reset',
-      'aria-label': '計算を捨てる',
-    }, '×');
-    const node = el('div', {
-      class: cls.join(' '),
-      role: 'button',
-      tabindex: '0',
-      'data-running': 'true',
-      'data-value': String(v),
-      'aria-label': '計算中の値 ' + v,
-    }, [
-      reset,
-      el('span', { class: 'card-num' }, String(v)),
-      el('span', { class: 'running-weight' }, '×' + w),
-      v === TARGET ? el('span', { class: 'running-grab' }, '獲得') : null,
-    ]);
-    return node;
-  }
-
   function renderControls(state) {
     const anyCard = state.field.some(c => c != null);
-    $('#btn-pass').disabled = !anyCard || !!state.running;
+    $('#btn-pass').disabled = !anyCard;
   }
 
   function renderEnd(state) {
