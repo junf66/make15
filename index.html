@@ -37,7 +37,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260428w">
+<link rel="stylesheet" href="css/style.css?v=20260428x">
 
 <script type="application/ld+json">
 {
@@ -104,29 +104,36 @@
 </main>
 
 <section class="lp">
-  <h2>Make15（メイク15）とは</h2>
-  <p>Make15 は、場に並ぶ5枚の数字カードを <strong>足し算・引き算・かけ算・割り算</strong> で組み合わせて「15」を作るシンプルなカードゲームです。ブラウザだけで遊べて、登録もインストールも不要。電車の中や休憩時間にサクッと脳を動かせる気軽な計算パズルとして設計しています。</p>
+  <h2>Make15（メイクいちご）とは</h2>
+  <p>Make15 は、場に並ぶ5枚の数字カードを <strong>足し算・引き算・かけ算・割り算</strong> で合体させて、最終的に「15」を作るシンプルなカードゲームです。ブラウザだけで遊べて、登録もインストールも不要。電車の中や休憩時間にサクッと脳を動かせる気軽な計算パズルとして設計しています。<br>
+  名前は「Make + 15」。日本語で 1（いち）+ 5（ご）= <strong>いちご</strong> のかけことばから。クリアすると🍓が降ってくるのもそのためです。</p>
 
   <h3>遊び方の流れ</h3>
   <ol>
     <li>場に5枚のカードが表向きで配られます。</li>
-    <li>カードを別のカードへ <strong>ドラッグ</strong>。出てきた <code>＋ − × ÷</code> から演算子を選ぶと、その2枚は消えて <strong>計算結果の数字</strong> だけが上に残ります。</li>
-    <li>場の他のカードを残った数字へドラッグして、もう一度演算を選ぶ。これを繰り返して数字を <strong>15</strong> に育てます。</li>
-    <li>結果が 15 になり、かつ <strong>5枚すべて使い切った</strong> ら自動で獲得（スコア +5）。途中で15になっても、5枚使い切るまではクリア扱いになりません。</li>
-    <li>場の空きは山札から自動補充。うまく作れないときは「パス」で1枚捨てて引き直し。</li>
-    <li>山札と場のカードがすべてなくなったらゲーム終了。<strong>獲得した枚数があなたのスコア</strong> です。</li>
+    <li>カードを別のカードへ <strong>ドラッグ</strong>。出てきた <code>＋ − × ÷</code> から演算子を選ぶと、その2枚は消えて <strong>計算結果の数字</strong> がそのスロットに残ります。</li>
+    <li>場の他のカードを残った数字へドラッグして、もう一度演算を選ぶ。これを繰り返して場のすべてを 1つの数字にまとめます。</li>
+    <li>その数字が <strong>15</strong> になったら自動でクリア → STAGE +1。🍓 が降ってきます。</li>
+    <li>クリアすると場が新しい5枚に置き換わり、次のステージへ。<strong>山札は無限に続く</strong> ので、ハイスコアを目指してずっと遊べます。</li>
   </ol>
 
   <h3>計算ルール</h3>
   <ul>
     <li>使える演算は <code>＋ − × ÷</code> の四則演算。</li>
-    <li>計算結果は <strong>整数のみ有効</strong>。割り算で割り切れない手は選べません（例: 15 ÷ 2 = 7.5 はNG）。</li>
-    <li>0で割ることはできません。</li>
-    <li>使ったカードは元には戻りません。15を作れず計算をやり直したいときは × ボタンで捨てます（カードは戻りません）。</li>
+    <li>計算結果は <strong>整数のみ有効</strong>。割り切れない÷は選べません（例: 15 ÷ 2 = 7.5 は不可）。</li>
+    <li>− と ÷ は順序に関係なく <strong>大きい方 − 小さい方</strong>／<strong>大きい方 ÷ 小さい方</strong> で計算します（負の数や小数にはなりません）。</li>
+    <li>0 で割ることはできません。</li>
+    <li>使ったカードは元には戻りません。失敗したと思ったら下のボタンでやり直せます。</li>
+  </ul>
+
+  <h3>2つのリセットボタン</h3>
+  <ul>
+    <li><strong>Retry（やり直す）</strong>：同じ手札（5枚）の最初から。STAGEは保持。</li>
+    <li><strong>Give Up（ギブアップ）</strong>：場を捨てて新しい5枚へ。STAGE は 0 に戻ります。</li>
   </ul>
 
   <h3>カード構成</h3>
-  <p>山札は1〜12が各2枚、13〜31が各1枚の合計 43枚。シャッフルして場に5枚並べます。</p>
+  <p>山札は 1〜12 が各2枚、13〜31 が各1枚の合計 <strong>43枚</strong>。使い切ったら自動で再シャッフルされ、エンドレスに続きます。</p>
 
   <h3>こんな人におすすめ</h3>
   <ul>
@@ -137,7 +144,10 @@
   </ul>
 
   <h3>コツ</h3>
-  <p>慣れてくると「15＝3×5」「15＝7+8」「15＝20−5」など、15を作る基本パターンが見えてきます。引き算で大きな数字を小さな15に近づけたり、割り算で一気に圧縮したりと組み合わせの工夫がスコア（使ったカード枚数）を伸ばすカギ。1枚ずつ多く合体させるほど高得点なので、慎重に演算子を選んでください。</p>
+  <p>慣れてくると「15 ＝ 3×5」「15 ＝ 7+8」「15 ＝ 20−5」など、15 を作る基本パターンが見えてきます。大きい数を引き算で小さくしたり、割り算で一気に圧縮したり、最後の1枚を ×1 や ÷1 で吸収したりと、組み合わせの工夫が連続クリアのカギ。連続でクリアして STAGE を伸ばし、ベスト記録を更新しましょう。</p>
+
+  <h3>ホーム画面に追加（PWA対応）</h3>
+  <p>iPhone は Safari の共有メニュー →「ホーム画面に追加」、Android Chrome は右上メニュー →「アプリをインストール」で、ホームから即起動できる状態になります。一度開けばオフラインでも遊べます。</p>
 
   <div id="affiliate-related" class="affiliate-block" aria-hidden="true">
     <!-- TODO: ボードゲーム・カードゲーム関連商品のアフィリエイトリンク -->
@@ -182,10 +192,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<script src="js/deck.js?v=20260428w"></script>
-<script src="js/evaluator.js?v=20260428w"></script>
-<script src="js/game.js?v=20260428w"></script>
-<script src="js/ui.js?v=20260428w"></script>
-<script src="js/main.js?v=20260428w"></script>
+<script src="js/deck.js?v=20260428x"></script>
+<script src="js/evaluator.js?v=20260428x"></script>
+<script src="js/game.js?v=20260428x"></script>
+<script src="js/ui.js?v=20260428x"></script>
+<script src="js/main.js?v=20260428x"></script>
 </body>
 </html>
