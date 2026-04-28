@@ -162,6 +162,7 @@
         UI.flashCombine(r.running.value);
         UI.flashOp(op);
         rerender();
+        autoCaptureIfReady();
       });
       return;
     }
@@ -174,9 +175,24 @@
         UI.flashCombine(r.running.value);
         UI.flashOp(op);
         rerender();
+        autoCaptureIfReady();
       });
       return;
     }
+  }
+
+  // 結果が 15 になったら少し見せてから自動で獲得
+  function autoCaptureIfReady() {
+    if (!state.running || state.running.value !== TARGET) return;
+    setTimeout(() => {
+      if (!state.running || state.running.value !== TARGET) return;
+      const r = Game.captureRunning(state);
+      if (!r.ok) return;
+      UI.flashSuccess('+' + r.weight + ' 獲得！');
+      Game.saveBestScore(state.captured);
+      rerender();
+      afterAction();
+    }, 700);
   }
 
   function openPicker(a, b, x, y, onPick) {
