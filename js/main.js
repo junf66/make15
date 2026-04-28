@@ -294,8 +294,8 @@
     const el = document.createElement('div');
     el.className = 'ios-pwa-hint';
     el.innerHTML =
-      '<span class="ios-pwa-text">ホーム画面に追加</span>' +
-      '<span class="ios-pwa-sub">下の「共有」→「ホーム画面に追加」</span>' +
+      '<span class="ios-pwa-text">🍓 ホーム画面に追加</span>' +
+      '<span class="ios-pwa-sub">下の 共有ボタンから</span>' +
       '<span class="ios-pwa-arrow">↓</span>';
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 5400);
