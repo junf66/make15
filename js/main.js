@@ -65,6 +65,8 @@
     document.body.classList.remove('is-dragging');
     dragging = false;
     activePointerId = null;
+    pStart = null;
+    pSrc = null;
   }
 
   function targetFromPoint(x, y) {
@@ -131,8 +133,6 @@
     if (activePointerId != null && e.pointerId !== activePointerId) return;
     const src = pSrc;
     const dst = dragOver;
-    pStart = null;
-    pSrc = null;
     endDrag();
 
     if (dst) {
@@ -143,8 +143,6 @@
   }
 
   function onPointerCancel() {
-    pStart = null;
-    pSrc = null;
     endDrag();
   }
 
