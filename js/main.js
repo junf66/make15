@@ -271,6 +271,34 @@
     bindEvents();
     newGame();
     maybeShowDemo();
+    maybeShowIosPwaHint();
+  }
+
+  function maybeShowIosPwaHint() {
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
+    if (!isIOS) return;
+    if (window.navigator.standalone) return; // すでにホーム画面起動
+    try {
+      const last = localStorage.getItem('make15_pwa_hint_seen');
+      if (last) {
+        const days = (Date.now() - parseInt(last, 10)) / 86400000;
+        if (days < 14) return;
+      }
+      localStorage.setItem('make15_pwa_hint_seen', String(Date.now()));
+    } catch (e) { return; }
+    setTimeout(showIosPwaHint, 1200);
+  }
+
+  function showIosPwaHint() {
+    const el = document.createElement('div');
+    el.className = 'ios-pwa-hint';
+    el.innerHTML =
+      '<span class="ios-pwa-text">ホーム画面に追加</span>' +
+      '<span class="ios-pwa-sub">下の「共有」→「ホーム画面に追加」</span>' +
+      '<span class="ios-pwa-arrow">↓</span>';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5400);
   }
 
   function maybeShowDemo() {

@@ -790,6 +790,47 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   color: #fff;
 }
 
+/* ----- iOS PWA install hint ----- */
+.ios-pwa-hint {
+  position: fixed;
+  left: 50%;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  background: rgba(26, 26, 26, 0.94);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 13px;
+  text-align: center;
+  z-index: 90;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  animation: ios-hint-fade 5.4s ease forwards;
+}
+.ios-pwa-text { font-weight: 700; font-size: 14px; }
+.ios-pwa-sub { font-size: 11px; opacity: 0.85; }
+.ios-pwa-arrow {
+  font-size: 22px;
+  line-height: 1;
+  margin-top: 2px;
+  animation: ios-arrow-bob 1.1s ease-in-out infinite;
+}
+@keyframes ios-arrow-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+@keyframes ios-hint-fade {
+  0%   { opacity: 0; transform: translate(-50%, 30px); }
+  8%   { opacity: 1; transform: translate(-50%, 0); }
+  88%  { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 30px); }
+}
+
 /* ----- Drag demo (first visit) ----- */
 .demo-finger {
   position: fixed;
