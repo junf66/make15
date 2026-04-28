@@ -115,7 +115,7 @@
   }
 
   function renderHeader(state) {
-    $('#stat-deck').textContent = String(state.deck.length);
+    $('#stat-stage').textContent = String(state.stage);
     $('#stat-captured').textContent = String(state.captured);
     $('#stat-best').textContent = String(Game.loadBestScore());
   }

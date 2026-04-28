@@ -47,6 +47,7 @@
       field: field,
       discard: [],
       captured: 0,
+      stage: 1,
       finished: false,
       lastEvent: null,
       originalSequence: original,
@@ -141,6 +142,7 @@
     const w = card.weight;
     state.field[idx] = null;
     state.captured += w;
+    state.stage += 1;
     refill(state);
     snapshotRound(state);
     state.lastEvent = { type: 'capture', weight: w };
@@ -167,8 +169,13 @@
 
   function refill(state) {
     for (let i = 0; i < state.field.length; i++) {
-      if (state.field[i] == null && state.deck.length > 0) {
-        state.field[i] = state.deck.shift();
+      if (state.field[i] == null) {
+        if (state.deck.length === 0) {
+          // 山札が尽きたら新しい山札を自動でシャッフルして追加（無限デッキ）
+          const more = shuffle(buildFullDeck()).map(v => newCard(v, 1));
+          for (const c of more) state.deck.push(c);
+        }
+        if (state.deck.length > 0) state.field[i] = state.deck.shift();
       }
     }
   }
