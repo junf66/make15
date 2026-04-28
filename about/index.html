@@ -66,7 +66,7 @@
     <textarea id="cf-msg" name="message" rows="6" required></textarea>
 
     <button type="submit" class="btn btn-primary">メールアプリで送信</button>
-    <p class="contact-note">※ このフォームはメールアプリを起動する仕組みです。直接送信先：<a id="cf-mail-link" href="#">make15.jp@gmail.com</a></p>
+    <p class="contact-note">※ 送信ボタンを押すと、ご利用のメールアプリが起動して内容が貼り付けられます。</p>
   </form>
 
   <p class="lp-related" style="margin-top:32px;"><a href="/">← トップへ戻る</a></p>
@@ -80,9 +80,6 @@
   document.getElementById('year').textContent = new Date().getFullYear();
   (function () {
     var TO = 'make15.jp@gmail.com';
-    var link = document.getElementById('cf-mail-link');
-    link.href = 'mailto:' + TO;
-    link.textContent = TO;
     var form = document.getElementById('contact-form');
     form.addEventListener('submit', function (e) {
       e.preventDefault();
