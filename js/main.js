@@ -293,9 +293,22 @@
   function onNewClick() {
     if (state && !state.finished && state.captured === 0 && !state.running) {
       newGame();
-    } else if (confirm('新しいゲームを始めますか？（現在のスコアはリセットされます）')) {
+    } else if (confirm('新しいゲーム（カードもシャッフルし直し）を始めますか？')) {
       newGame();
     }
+  }
+
+  function onRestartClick() {
+    if (!state) return;
+    if (state.captured > 0 || state.running || state.finished) {
+      if (!confirm('同じカードで最初からやり直しますか？（現在のスコアはリセット）')) return;
+    }
+    state = Game.restartGame(state);
+    Game.incrementGameCount();
+    UI.setPassSelecting(false);
+    UI.closeOpPicker();
+    rerender();
+    document.getElementById('end-banner').hidden = true;
   }
 
   function bindEvents() {
@@ -310,6 +323,7 @@
     field.addEventListener('click', onCardClick);
 
     document.getElementById('btn-pass').addEventListener('click', onPass);
+    document.getElementById('btn-restart').addEventListener('click', onRestartClick);
     document.getElementById('btn-rules').addEventListener('click', onRules);
     document.getElementById('btn-new').addEventListener('click', onNewClick);
     document.getElementById('btn-end-new').addEventListener('click', newGame);

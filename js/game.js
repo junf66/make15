@@ -26,7 +26,19 @@
   }
 
   function createGame() {
-    const deck = shuffle(buildFullDeck()).map(v => newCard(v));
+    const sequence = shuffle(buildFullDeck());
+    return startWithSequence(sequence);
+  }
+
+  // 同じカード順で初期化し直す
+  function restartGame(state) {
+    if (!state || !state.originalSequence) return createGame();
+    return startWithSequence(state.originalSequence.slice());
+  }
+
+  function startWithSequence(sequence) {
+    const original = sequence.slice();
+    const deck = sequence.map(v => newCard(v));
     const field = [];
     for (let i = 0; i < FIELD_SIZE; i++) {
       field.push(deck.length ? deck.shift() : null);
@@ -35,11 +47,12 @@
       deck: deck,
       field: field,
       discard: [],
-      running: null,        // { value, weight } または null
-      runningSlot: null,    // running が場のどのスロットに表示されているか
+      running: null,
+      runningSlot: null,
       captured: 0,
       finished: false,
       lastEvent: null,
+      originalSequence: original,
     };
   }
 
@@ -224,7 +237,7 @@
 
   global.M15 = global.M15 || {};
   global.M15.Game = {
-    createGame, combineFields, addRunning, captureRunning, resetRunning, captureCard, pass,
+    createGame, restartGame, combineFields, addRunning, captureRunning, resetRunning, captureCard, pass,
     previews, calcOp,
     loadBestScore, saveBestScore, incrementGameCount, loadSettings, saveSettings,
     CONSTANTS: { FIELD_SIZE, TARGET },
