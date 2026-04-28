@@ -56,7 +56,11 @@
   function endDrag() {
     if (pSrc) {
       const node = pSrc.kind === 'card' ? elByCard(pSrc.uid) : document.getElementById('running');
-      if (node) node.classList.remove('is-grabbed');
+      if (node) {
+        node.classList.remove('is-grabbed');
+        node.style.transform = '';
+        node.style.transition = '';
+      }
     }
     setDragOver(null);
     document.body.classList.remove('is-dragging');
@@ -117,11 +121,19 @@
       dragging = true;
       document.body.classList.add('is-dragging');
       const node = pSrc.kind === 'card' ? elByCard(pSrc.uid) : document.getElementById('running');
-      if (node) node.classList.add('is-grabbed');
+      if (node) {
+        node.classList.add('is-grabbed');
+        node.style.transition = 'none';
+      }
     }
     if (!dragging) return;
+    // 掴んだ要素を指/カーソルに追従させる
+    const node = pSrc.kind === 'card' ? elByCard(pSrc.uid) : document.getElementById('running');
+    if (node) {
+      const scale = pSrc.kind === 'card' ? 1.04 : 1.02;
+      node.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(' + scale + ')';
+    }
     const target = targetFromPoint(e.clientX, e.clientY);
-    // 自分自身は除外
     if (target && target.kind === pSrc.kind && target.uid === pSrc.uid) {
       setDragOver(null);
     } else {

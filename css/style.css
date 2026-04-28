@@ -202,10 +202,10 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   50% { box-shadow: 0 0 0 6px rgba(210,69,77,0.18); }
 }
 .running.is-grabbed {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 14px 28px rgba(26,26,26,0.18);
+  box-shadow: 0 14px 28px rgba(26,26,26,0.22);
   pointer-events: none;
-  z-index: 5;
+  z-index: 200;
+  opacity: 0.96;
 }
 .running.is-drop-target {
   border-color: var(--moss);
@@ -359,10 +359,9 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   .card:hover:not(:disabled) { cursor: grab; }
 }
 .card.is-grabbed {
-  transform: translateY(-10px) scale(1.04);
-  box-shadow: 0 14px 28px rgba(26,26,26,0.22);
-  z-index: 5;
-  opacity: 0.92;
+  box-shadow: 0 14px 28px rgba(26,26,26,0.28);
+  z-index: 200;
+  opacity: 0.96;
   pointer-events: none;
   cursor: grabbing;
 }
