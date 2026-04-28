@@ -158,7 +158,7 @@
       if (cur < 0) return;
       const r = Game.captureCell(state, targetUid);
       if (!r.ok) return;
-      UI.flashSuccess('+' + r.weight + ' 獲得！');
+      UI.flashSuccess(r.weight + '枚獲得');
       Game.saveBestScore(state.captured);
       rerender();
       afterAction();
@@ -185,7 +185,7 @@
     if (card.value === TARGET && card.weight === FIELD_SIZE) {
       const r = Game.captureCell(state, uid);
       if (r.ok) {
-        UI.flashSuccess('+' + r.weight + ' 獲得！');
+        UI.flashSuccess(r.weight + '枚獲得');
         Game.saveBestScore(state.captured);
         rerender();
         afterAction();
