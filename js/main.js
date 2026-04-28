@@ -270,6 +270,42 @@
   function init() {
     bindEvents();
     newGame();
+    maybeShowDemo();
+  }
+
+  function maybeShowDemo() {
+    try {
+      if (localStorage.getItem('make15_seen_demo')) return;
+      localStorage.setItem('make15_seen_demo', '1');
+    } catch (e) { return; }
+    setTimeout(showDragDemo, 700);
+  }
+
+  function showDragDemo() {
+    const cards = document.querySelectorAll('.card');
+    if (cards.length < 2) return;
+    const a = cards[0].getBoundingClientRect();
+    const b = cards[1].getBoundingClientRect();
+    const ax = a.left + a.width / 2;
+    const ay = a.top + a.height / 2;
+    const bx = b.left + b.width / 2;
+    const by = b.top + b.height / 2;
+
+    const finger = document.createElement('div');
+    finger.className = 'demo-finger';
+    finger.textContent = '👆';
+    finger.style.left = ax + 'px';
+    finger.style.top = ay + 'px';
+    finger.style.setProperty('--dx', (bx - ax) + 'px');
+    finger.style.setProperty('--dy', (by - ay) + 'px');
+    document.body.appendChild(finger);
+    setTimeout(() => finger.remove(), 3000);
+
+    const hint = document.createElement('div');
+    hint.className = 'demo-hint';
+    hint.textContent = 'カードを別カードへドラッグ';
+    document.body.appendChild(hint);
+    setTimeout(() => hint.remove(), 3000);
   }
 
   if (document.readyState === 'loading') {
