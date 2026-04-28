@@ -79,7 +79,6 @@
     const positions = [ia, ib].sort((x, y) => y - x);
     for (const p of positions) state.field.splice(p, 1);
     state.running = { value: v, weight: 2 };
-    refill(state);
     state.lastEvent = { type: 'combine', value: v, op: op };
     checkEnd(state);
     return { ok: true, running: state.running };
@@ -94,7 +93,6 @@
     const card = state.field[idx];
     state.field.splice(idx, 1);
     state.running = { value: card.value, weight: 1 };
-    refill(state);
     state.lastEvent = { type: 'initRunning', value: card.value };
     checkEnd(state);
     return { ok: true, running: state.running };
@@ -111,13 +109,12 @@
     if (v === null) return { ok: false, error: '整数で計算できません' };
     state.field.splice(idx, 1);
     state.running = { value: v, weight: state.running.weight + 1 };
-    refill(state);
     state.lastEvent = { type: 'addRunning', value: v, op: op };
     checkEnd(state);
     return { ok: true, running: state.running };
   }
 
-  // 計算中の値を獲得（15 のときのみ可）
+  // 計算中の値を獲得（15 のときのみ可）。1ラウンド終了 → 場を5枚に補充
   function captureRunning(state) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
     if (!state.running) return { ok: false, error: '計算中の値がありません' };
@@ -127,16 +124,18 @@
     const w = state.running.weight;
     state.captured += w;
     state.running = null;
+    refill(state);
     state.lastEvent = { type: 'capture', weight: w };
     checkEnd(state);
     return { ok: true, weight: w };
   }
 
-  // 計算中の値を捨てる（使ったカードは戻らない）
+  // 計算中の値を捨てる（使ったカードは戻らない）。場を5枚に補充
   function resetRunning(state) {
     if (state.finished) return false;
     if (!state.running) return false;
     state.running = null;
+    refill(state);
     state.lastEvent = { type: 'resetRunning' };
     checkEnd(state);
     return true;
