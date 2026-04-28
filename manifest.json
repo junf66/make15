@@ -1,0 +1,27 @@
+{
+  "name": "Make15 — めいくいちご",
+  "short_name": "Make15",
+  "description": "5枚のカードを四則演算で組み合わせて15を作るブラウザカードゲーム。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF7F2",
+  "theme_color": "#D2454D",
+  "lang": "ja",
+  "categories": ["games", "puzzle", "education"],
+  "icons": [
+    {
+      "src": "/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
