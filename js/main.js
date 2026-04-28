@@ -296,11 +296,8 @@
 
   function onRestartClick() {
     if (!state) return;
-    if (state.captured > 0 || state.running || state.finished) {
-      if (!confirm('同じカードで最初からやり直しますか？（現在のスコアはリセット）')) return;
-    }
-    state = Game.restartGame(state);
-    Game.incrementGameCount();
+    if (!confirm('今の回（同じ5枚）を最初からやり直しますか？\n（獲得スコアは保持されます）')) return;
+    Game.restartRound(state);
     UI.setPassSelecting(false);
     UI.closeOpPicker();
     rerender();

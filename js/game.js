@@ -43,7 +43,7 @@
     for (let i = 0; i < FIELD_SIZE; i++) {
       field.push(deck.length ? deck.shift() : null);
     }
-    return {
+    const state = {
       deck: deck,
       field: field,
       discard: [],
@@ -53,7 +53,34 @@
       finished: false,
       lastEvent: null,
       originalSequence: original,
+      roundSnapshot: null,
     };
+    snapshotRound(state);
+    return state;
+  }
+
+  function cloneCard(c) { return c ? { uid: c.uid, value: c.value } : null; }
+  function cloneCardArr(arr) { return arr.map(cloneCard); }
+
+  function snapshotRound(state) {
+    state.roundSnapshot = {
+      field: cloneCardArr(state.field),
+      deck: state.deck.map(c => ({ uid: c.uid, value: c.value })),
+      discard: state.discard.slice(),
+    };
+  }
+
+  // 現在のラウンドの最初に戻す（獲得スコアは保持）
+  function restartRound(state) {
+    if (!state.roundSnapshot) return false;
+    state.field = cloneCardArr(state.roundSnapshot.field);
+    state.deck = state.roundSnapshot.deck.map(c => ({ uid: c.uid, value: c.value }));
+    state.discard = state.roundSnapshot.discard.slice();
+    state.running = null;
+    state.runningSlot = null;
+    state.finished = false;
+    state.lastEvent = { type: 'restartRound' };
+    return true;
   }
 
   function calcOp(a, b, op) {
@@ -135,6 +162,7 @@
     state.running = null;
     state.runningSlot = null;
     refill(state);
+    snapshotRound(state);
     state.lastEvent = { type: 'capture', weight: w };
     checkEnd(state);
     return { ok: true, weight: w };
@@ -147,6 +175,7 @@
     state.running = null;
     state.runningSlot = null;
     refill(state);
+    snapshotRound(state);
     state.lastEvent = { type: 'resetRunning' };
     checkEnd(state);
     return true;
@@ -240,7 +269,7 @@
 
   global.M15 = global.M15 || {};
   global.M15.Game = {
-    createGame, restartGame, combineFields, addRunning, captureRunning, resetRunning, captureCard, pass,
+    createGame, restartGame, restartRound, combineFields, addRunning, captureRunning, resetRunning, captureCard, pass,
     previews, calcOp,
     loadBestScore, saveBestScore, incrementGameCount, loadSettings, saveSettings,
     CONSTANTS: { FIELD_SIZE, TARGET },

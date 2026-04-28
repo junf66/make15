@@ -722,8 +722,8 @@ body.is-dragging { user-select: none; cursor: grabbing; }
 
 /* ----- Wider screens ----- */
 @media (min-width: 720px) {
-  .field { gap: 12px; max-width: 460px; }
-  .card-num { font-size: 38px; }
+  .field { gap: 10px; max-width: 320px; }
+  .card-num { font-size: 28px; }
 }
 
 /* Reduce motion */
