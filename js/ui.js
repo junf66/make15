@@ -202,7 +202,7 @@
   }
 
   function confettiRain() {
-    const total = 60;
+    const total = 48;
     for (let i = 0; i < total; i++) {
       setTimeout(() => {
         const c = document.createElement('span');
