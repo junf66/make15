@@ -500,15 +500,33 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   grid-template-columns: 3fr 7fr;
   gap: 8px;
   margin-bottom: 14px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
 }
-.actions .btn { line-height: 1.3; padding: 12px 8px; }
+.actions .btn {
+  line-height: 1.2;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 400;
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--muted);
+}
+.actions .btn:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--soft);
+}
 .btn-sub {
   display: block;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 400;
   color: var(--muted);
-  margin-top: 2px;
+  margin-top: 1px;
   letter-spacing: 0;
+}
+@media (min-width: 720px) {
+  .actions { max-width: 360px; }
 }
 .btn {
   padding: 14px 18px;
