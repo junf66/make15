@@ -148,11 +148,12 @@
     });
   }
 
-  // 場に「15 かつ 重み=5」のセルが現れたら自動で獲得
+  // 場が「15のセル1つだけ」になったら自動で獲得
   function autoCaptureIfReady() {
-    const idx = state.field.findIndex(c => c && c.value === TARGET && c.weight === FIELD_SIZE);
-    if (idx < 0) return;
-    const targetUid = state.field[idx].uid;
+    const nonNull = state.field.filter(c => c != null);
+    if (nonNull.length !== 1) return;
+    if (nonNull[0].value !== TARGET) return;
+    const targetUid = nonNull[0].uid;
     setTimeout(() => {
       const cur = state.field.findIndex(c => c && c.uid === targetUid);
       if (cur < 0) return;
@@ -181,8 +182,9 @@
       return;
     }
 
-    // クリア対象のセル：タップで獲得
-    if (card.value === TARGET && card.weight === FIELD_SIZE) {
+    // クリア対象のセル：場の唯一のセルで値=15
+    const onlyCell = state.field.filter(c => c != null);
+    if (card.value === TARGET && onlyCell.length === 1 && onlyCell[0].uid === uid) {
       const r = Game.captureCell(state, uid);
       if (r.ok) {
         UI.flashSuccess(r.weight + '枚獲得');
@@ -196,7 +198,7 @@
     }
 
     if (card.value === TARGET) {
-      UI.flashFail('5枚すべて使ってください（現在 ' + card.weight + ' 枚）');
+      UI.flashFail('残りのカードもすべて合体させてください');
       return;
     }
     UI.flashFail('カードを別のカードへドラッグして合体');

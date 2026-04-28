@@ -130,7 +130,8 @@
         continue;
       }
       const isComputed = card.weight > 1;
-      const isClearable = card.value === TARGET && card.weight === Game.CONSTANTS.FIELD_SIZE;
+      const onlyCell = !state.field.some((c, j) => c != null && j !== i);
+      const isClearable = card.value === TARGET && onlyCell;
       const cls = ['card'];
       if (isComputed) cls.push('is-computed');
       if (isClearable) cls.push('is-target');

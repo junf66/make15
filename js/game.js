@@ -125,7 +125,7 @@
     return { ok: true, result: result };
   }
 
-  // セルを獲得（値=15 かつ 重み=5）
+  // セルを獲得（値=15 かつ 場に残るセルがその1つだけ）
   function captureCell(state, uid) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
     const idx = state.field.findIndex(c => c && c.uid === uid);
@@ -134,16 +134,18 @@
     if (card.value !== TARGET) {
       return { ok: false, error: '15ではありません（' + card.value + '）' };
     }
-    if (card.weight !== FIELD_SIZE) {
-      return { ok: false, error: '5枚すべて使う必要があります（現在 ' + card.weight + ' 枚）' };
+    const otherNonNull = state.field.some((c, i) => c != null && i !== idx);
+    if (otherNonNull) {
+      return { ok: false, error: '残りのカードもすべて合体させてください' };
     }
+    const w = card.weight;
     state.field[idx] = null;
-    state.captured += FIELD_SIZE;
+    state.captured += w;
     refill(state);
     snapshotRound(state);
-    state.lastEvent = { type: 'capture', weight: FIELD_SIZE };
+    state.lastEvent = { type: 'capture', weight: w };
     checkEnd(state);
-    return { ok: true, weight: FIELD_SIZE };
+    return { ok: true, weight: w };
   }
 
   function pass(state, uid) {
