@@ -271,6 +271,15 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   font-size: 14px;
 }
 
+.card-empty {
+  aspect-ratio: 5 / 7;
+  border: 1.5px dashed var(--card-border);
+  border-radius: var(--radius-card);
+  background: transparent;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .card {
   position: relative;
   aspect-ratio: 5 / 7;

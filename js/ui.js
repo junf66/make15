@@ -126,11 +126,11 @@
   function renderField(state) {
     const root = $('#field');
     root.innerHTML = '';
-    if (state.field.length === 0) {
-      root.appendChild(el('div', { class: 'field-empty' }, '場にカードがありません'));
-      return;
-    }
     for (const card of state.field) {
+      if (card == null) {
+        root.appendChild(el('div', { class: 'card-empty', 'aria-hidden': 'true' }));
+        continue;
+      }
       const node = el('button', {
         type: 'button',
         class: 'card',
@@ -144,7 +144,8 @@
   }
 
   function renderControls(state) {
-    $('#btn-pass').disabled = state.field.length === 0;
+    const anyCard = state.field.some(c => c != null);
+    $('#btn-pass').disabled = !anyCard || !!state.running;
   }
 
   function renderEnd(state) {

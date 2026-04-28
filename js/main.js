@@ -224,7 +224,7 @@
     const btn = e.target.closest('.card');
     if (!btn) return;
     const uid = btn.dataset.uid;
-    const card = state.field.find(c => c.uid === uid);
+    const card = state.field.find(c => c && c.uid === uid);
     if (!card) return;
 
     if (UI.isPassSelecting()) {
@@ -240,6 +240,10 @@
     } else {
       UI.flashFail('カードをBOXまたは別のカードにドラッグ');
     }
+  }
+
+  function fieldHasCards() {
+    return state.field.some(c => c != null);
   }
 
   function onRunningClick(e) {
@@ -270,7 +274,7 @@
   }
 
   function onPass() {
-    if (state.field.length === 0) return;
+    if (!fieldHasCards()) return;
     if (state.running) {
       UI.flashFail('計算中はパスできません（× で捨ててから）');
       return;

@@ -29,7 +29,7 @@
     const deck = shuffle(buildFullDeck()).map(v => newCard(v));
     const field = [];
     for (let i = 0; i < FIELD_SIZE; i++) {
-      if (deck.length) field.push(deck.shift());
+      field.push(deck.length ? deck.shift() : null);
     }
     return {
       deck: deck,
@@ -47,10 +47,16 @@
       case '+': return a + b;
       case '-': return a - b;
       case '*': return a * b;
-      case '/':
-        if (b === 0) return null;
-        if (a % b !== 0) return null;
-        return a / b;
+      case '/': {
+        // 順番に関係なく「絶対値の大きい方 ÷ 絶対値の小さい方」
+        const absA = Math.abs(a), absB = Math.abs(b);
+        let dividend, divisor;
+        if (absA >= absB) { dividend = a; divisor = b; }
+        else { dividend = b; divisor = a; }
+        if (divisor === 0) return null;
+        if (dividend % divisor !== 0) return null;
+        return dividend / divisor;
+      }
       default: return null;
     }
   }
@@ -69,45 +75,43 @@
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
     if (state.running) return { ok: false, error: '計算中の値が既にあります' };
     if (uidA === uidB) return { ok: false, error: '同じカードは選べません' };
-    const ia = state.field.findIndex(c => c.uid === uidA);
-    const ib = state.field.findIndex(c => c.uid === uidB);
+    const ia = state.field.findIndex(c => c && c.uid === uidA);
+    const ib = state.field.findIndex(c => c && c.uid === uidB);
     if (ia < 0 || ib < 0) return { ok: false, error: 'カードが見つかりません' };
     const a = state.field[ia];
     const b = state.field[ib];
     const v = calcOp(a.value, b.value, op);
     if (v === null) return { ok: false, error: '整数で計算できません' };
-    const positions = [ia, ib].sort((x, y) => y - x);
-    for (const p of positions) state.field.splice(p, 1);
+    state.field[ia] = null;
+    state.field[ib] = null;
     state.running = { value: v, weight: 2 };
     state.lastEvent = { type: 'combine', value: v, op: op };
     checkEnd(state);
     return { ok: true, running: state.running };
   }
 
-  // 空の状態でカードを計算中の値に入れる（初期化、weight=1）
   function initRunning(state, uid) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
     if (state.running) return { ok: false, error: '計算中の値が既にあります' };
-    const idx = state.field.findIndex(c => c.uid === uid);
+    const idx = state.field.findIndex(c => c && c.uid === uid);
     if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
     const card = state.field[idx];
-    state.field.splice(idx, 1);
+    state.field[idx] = null;
     state.running = { value: card.value, weight: 1 };
     state.lastEvent = { type: 'initRunning', value: card.value };
     checkEnd(state);
     return { ok: true, running: state.running };
   }
 
-  // 計算中の値に場のカードを足す
   function addRunning(state, uid, op) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
     if (!state.running) return { ok: false, error: '計算中の値がありません' };
-    const idx = state.field.findIndex(c => c.uid === uid);
+    const idx = state.field.findIndex(c => c && c.uid === uid);
     if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
     const card = state.field[idx];
     const v = calcOp(state.running.value, card.value, op);
     if (v === null) return { ok: false, error: '整数で計算できません' };
-    state.field.splice(idx, 1);
+    state.field[idx] = null;
     state.running = { value: v, weight: state.running.weight + 1 };
     state.lastEvent = { type: 'addRunning', value: v, op: op };
     checkEnd(state);
@@ -145,15 +149,14 @@
   function captureCard(state, uid) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
     if (state.running) return { ok: false, error: 'まずは計算中の値を確定（15）してください' };
-    const idx = state.field.findIndex(c => c.uid === uid);
+    const idx = state.field.findIndex(c => c && c.uid === uid);
     if (idx < 0) return { ok: false, error: 'カードが見つかりません' };
     const card = state.field[idx];
     if (card.value !== TARGET) {
       return { ok: false, error: '15ではありません（' + card.value + '）' };
     }
-    state.field.splice(idx, 1);
+    state.field[idx] = null;
     state.captured += 1;
-    refill(state);
     state.lastEvent = { type: 'capture', weight: 1 };
     checkEnd(state);
     return { ok: true, weight: 1 };
@@ -161,27 +164,33 @@
 
   function pass(state, uid) {
     if (state.finished) return false;
-    if (state.field.length === 0) return false;
+    const nonNull = state.field.findIndex(c => c != null);
+    if (nonNull < 0) return false;
     const idx = uid
-      ? state.field.findIndex(c => c.uid === uid)
-      : 0;
+      ? state.field.findIndex(c => c && c.uid === uid)
+      : nonNull;
     if (idx < 0) return false;
-    const removed = state.field.splice(idx, 1)[0];
+    const removed = state.field[idx];
+    state.field[idx] = null;
     state.discard.push(removed);
-    if (state.deck.length > 0) state.field.push(state.deck.shift());
+    if (state.deck.length > 0) state.field[idx] = state.deck.shift();
     state.lastEvent = { type: 'pass' };
     checkEnd(state);
     return true;
   }
 
+  // 空きスロットに山札から補充
   function refill(state) {
-    while (state.field.length < FIELD_SIZE && state.deck.length > 0) {
-      state.field.push(state.deck.shift());
+    for (let i = 0; i < state.field.length; i++) {
+      if (state.field[i] == null && state.deck.length > 0) {
+        state.field[i] = state.deck.shift();
+      }
     }
   }
 
   function checkEnd(state) {
-    if (state.deck.length === 0 && state.field.length === 0 && !state.running) {
+    const allEmpty = state.field.every(c => c == null);
+    if (state.deck.length === 0 && allEmpty && !state.running) {
       state.finished = true;
     }
   }
