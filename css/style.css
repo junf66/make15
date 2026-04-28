@@ -708,20 +708,30 @@ body.is-dragging { user-select: none; cursor: grabbing; }
 .modal-inner {
   background: var(--bg);
   border-radius: var(--radius);
-  padding: 28px 22px;
+  padding: 22px 18px;
   max-width: 460px;
   width: 100%;
   position: relative;
   box-shadow: var(--shadow-lift);
   max-height: 86vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  font-size: 14px;
+  line-height: 1.6;
 }
 .modal-inner h2 {
   font-family: var(--serif);
-  margin: 0 0 14px;
+  font-size: 18px;
+  margin: 0 0 12px;
 }
-.modal-inner ul { padding-left: 1.4em; }
-.modal-inner li { margin: 6px 0; }
+.modal-inner h3 {
+  font-size: 15px;
+  margin-top: 14px !important;
+  margin-bottom: 8px;
+}
+.modal-inner ul { padding-left: 1.3em; margin: 6px 0; }
+.modal-inner li { margin: 4px 0; font-size: 13px; }
+.modal-inner .btn.modal-close { font-size: 14px; }
 .modal-close {
   position: absolute;
   top: 8px;
