@@ -199,11 +199,15 @@
     }
   }
 
-  // 結果が 15 になったら少し見せてから自動で獲得
+  // 結果が 15 かつ 5枚すべて使い切ったときに自動で獲得
   function autoCaptureIfReady() {
-    if (!state.running || state.running.value !== TARGET) return;
+    if (!state.running) return;
+    if (state.running.value !== TARGET) return;
+    if (state.running.weight !== Game.CONSTANTS.FIELD_SIZE) return;
     setTimeout(() => {
-      if (!state.running || state.running.value !== TARGET) return;
+      if (!state.running) return;
+      if (state.running.value !== TARGET) return;
+      if (state.running.weight !== Game.CONSTANTS.FIELD_SIZE) return;
       const r = Game.captureRunning(state);
       if (!r.ok) return;
       UI.flashSuccess('+' + r.weight + ' 獲得！');
@@ -231,22 +235,26 @@
       return;
     }
 
-    // 計算結果セル本体（タップ → 15なら獲得）
+    // 計算結果セル本体（タップ → 15 かつ 5枚使い切りで獲得）
     const running = e.target.closest('.running-card');
     if (running) {
       if (!state.running) return;
-      if (state.running.value === TARGET) {
-        const r = Game.captureRunning(state);
-        if (r.ok) {
-          UI.flashSuccess('+' + r.weight + ' 獲得！');
-          Game.saveBestScore(state.captured);
-          rerender();
-          afterAction();
-        } else {
-          UI.flashFail(r.error);
-        }
-      } else {
+      if (state.running.value !== TARGET) {
         UI.flashFail('まだ15ではありません（' + state.running.value + '）');
+        return;
+      }
+      if (state.running.weight !== Game.CONSTANTS.FIELD_SIZE) {
+        UI.flashFail('5枚すべて使ってください（現在 ' + state.running.weight + ' 枚）');
+        return;
+      }
+      const r = Game.captureRunning(state);
+      if (r.ok) {
+        UI.flashSuccess('+' + r.weight + ' 獲得！');
+        Game.saveBestScore(state.captured);
+        rerender();
+        afterAction();
+      } else {
+        UI.flashFail(r.error);
       }
       return;
     }

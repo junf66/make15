@@ -153,12 +153,15 @@
     return { ok: true, running: state.running };
   }
 
-  // 計算中の値を獲得（15 のときのみ可）。1ラウンド終了 → 場を5枚に補充
+  // 計算中の値を獲得（5枚すべて使い切って 15 のときのみ）。1ラウンド終了 → 場を5枚に補充
   function captureRunning(state) {
     if (state.finished) return { ok: false, error: 'ゲーム終了' };
     if (!state.running) return { ok: false, error: '計算中の値がありません' };
     if (state.running.value !== TARGET) {
       return { ok: false, error: '15ではありません（' + state.running.value + '）' };
+    }
+    if (state.running.weight !== FIELD_SIZE) {
+      return { ok: false, error: '5枚すべて使う必要があります（現在 ' + state.running.weight + ' 枚）' };
     }
     const w = state.running.weight;
     state.captured += w;
