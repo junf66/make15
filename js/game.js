@@ -52,6 +52,7 @@
       lastEvent: null,
       originalSequence: original,
       roundSnapshot: null,
+      roundStartedAt: Date.now(),
     };
     snapshotRound(state);
     return state;
@@ -74,6 +75,7 @@
     state.deck = state.roundSnapshot.deck.map(c => ({ uid: c.uid, value: c.value, weight: c.weight }));
     state.discard = state.roundSnapshot.discard.slice();
     state.finished = false;
+    state.roundStartedAt = Date.now();
     state.lastEvent = { type: 'restartRound' };
     return true;
   }
@@ -140,14 +142,16 @@
       return { ok: false, error: '残りのカードもすべて合体させてください' };
     }
     const w = card.weight;
+    const elapsedMs = Date.now() - (state.roundStartedAt || Date.now());
     state.field[idx] = null;
     state.captured += w;
     state.stage += 1;
     refill(state);
+    state.roundStartedAt = Date.now();
     snapshotRound(state);
-    state.lastEvent = { type: 'capture', weight: w };
+    state.lastEvent = { type: 'capture', weight: w, elapsedMs: elapsedMs };
     checkEnd(state);
-    return { ok: true, weight: w };
+    return { ok: true, weight: w, elapsedMs: elapsedMs };
   }
 
   function pass(state, uid) {
@@ -178,6 +182,7 @@
     }
     refill(state);
     state.stage = 0;
+    state.roundStartedAt = Date.now();
     snapshotRound(state);
     state.lastEvent = { type: 'giveUp' };
     checkEnd(state);

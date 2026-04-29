@@ -159,7 +159,8 @@
       if (cur < 0) return;
       const r = Game.captureCell(state, targetUid);
       if (!r.ok) return;
-      UI.flashSuccess('クリア！');
+      const fast = r.elapsedMs < 10000;
+      UI.flashSuccess(fast ? '10秒以内クリア！！' : 'クリア！', { fast: fast });
       Game.saveBestScore(state.stage);
       rerender();
       afterAction();
@@ -187,7 +188,8 @@
     if (card.value === TARGET && onlyCell.length === 1 && onlyCell[0].uid === uid) {
       const r = Game.captureCell(state, uid);
       if (r.ok) {
-        UI.flashSuccess('クリア！');
+        const fast = r.elapsedMs < 10000;
+        UI.flashSuccess(fast ? '10秒以内クリア！！' : 'クリア！', { fast: fast });
         Game.saveBestScore(state.stage);
         rerender();
         afterAction();

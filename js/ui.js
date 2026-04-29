@@ -182,21 +182,29 @@
     }
   }
 
-  function flashSuccess(msg) {
+  function flashSuccess(msg, opts) {
+    opts = opts || {};
+    const fast = !!opts.fast;
     playPopper();
     playSuccess();
     setTimeout(playPopper, 220);
     setTimeout(playPopper, 460);
     setTimeout(playSuccess, 800);
+    if (fast) {
+      setTimeout(playPopper, 700);
+      setTimeout(playPopper, 920);
+    }
 
-    setBanner(msg || '＝ 15　獲得！', 'feedback is-success', 2000);
+    setBanner(msg || '＝ 15　獲得！', 'feedback is-success' + (fast ? ' is-fast' : ''), 2000);
 
-    // 左右の小さなクラッカー（中央は邪魔しない）
     sidePoppers();
     setTimeout(sidePoppers, 700);
+    if (fast) {
+      setTimeout(sidePoppers, 1400);
+      setTimeout(sidePoppers, 2100);
+    }
 
-    // 紙吹雪：画面上から落とす
-    confettiRain();
+    confettiRain(fast ? 5 : 1);
   }
 
   function sidePoppers() {
@@ -212,8 +220,9 @@
     setTimeout(() => tag.remove(), 1600);
   }
 
-  function confettiRain() {
-    const total = 48;
+  function confettiRain(multiplier) {
+    multiplier = Math.max(1, multiplier || 1);
+    const total = 48 * multiplier;
     for (let i = 0; i < total; i++) {
       setTimeout(() => {
         const c = document.createElement('span');
