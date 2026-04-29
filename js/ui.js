@@ -222,8 +222,10 @@
 
   function confettiRain(multiplier) {
     multiplier = Math.max(1, multiplier || 1);
-    const total = 48 * multiplier;
     const interval = 35 / multiplier;
+    // 1xは通常の bursts（48個＝約1.7秒）。multiplier>1 のときは 5秒間その密度で降らせる。
+    const duration = multiplier > 1 ? 5000 : 48 * 35;
+    const total = Math.floor(duration / interval);
     for (let i = 0; i < total; i++) {
       setTimeout(() => {
         const c = document.createElement('span');
