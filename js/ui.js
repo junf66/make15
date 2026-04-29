@@ -167,6 +167,21 @@
   }
 
   // ----- フィードバック -----
+  let bannerTimer = null;
+  function setBanner(text, cls, hideMs) {
+    if (bannerTimer) { clearTimeout(bannerTimer); bannerTimer = null; }
+    const banner = $('#feedback');
+    banner.textContent = text;
+    banner.className = cls;
+    if (hideMs) {
+      bannerTimer = setTimeout(() => {
+        banner.className = 'feedback';
+        banner.textContent = '';
+        bannerTimer = null;
+      }, hideMs);
+    }
+  }
+
   function flashSuccess(msg) {
     playPopper();
     playSuccess();
@@ -174,9 +189,7 @@
     setTimeout(playPopper, 460);
     setTimeout(playSuccess, 800);
 
-    const banner = $('#feedback');
-    banner.textContent = msg || '＝ 15　獲得！';
-    banner.className = 'feedback is-success';
+    setBanner(msg || '＝ 15　獲得！', 'feedback is-success', 3500);
 
     // 左右の小さなクラッカー（中央は邪魔しない）
     sidePoppers();
@@ -184,8 +197,6 @@
 
     // 紙吹雪：画面上から落とす
     confettiRain();
-
-    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 3500);
   }
 
   function sidePoppers() {
@@ -221,21 +232,15 @@
   }
   function flashCombine(value) {
     playCombine();
-    const banner = $('#feedback');
-    banner.textContent = '＝ ' + value;
-    banner.className = 'feedback is-combine';
-    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 900);
+    setBanner('＝ ' + value, 'feedback is-combine', 900);
   }
   function flashFail(msg) {
     playFail();
-    const banner = $('#feedback');
-    banner.textContent = msg || 'もう一度どうぞ';
-    banner.className = 'feedback is-fail';
+    setBanner(msg || 'もう一度どうぞ', 'feedback is-fail', 1600);
     const fld = $('#field');
     fld.classList.remove('shake');
     void fld.offsetWidth;
     fld.classList.add('shake');
-    setTimeout(() => { banner.className = 'feedback'; banner.textContent = ''; }, 1600);
   }
   function flashOp(op) {
     const layer = $('#fx');
