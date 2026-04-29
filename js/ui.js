@@ -223,6 +223,7 @@
   function confettiRain(multiplier) {
     multiplier = Math.max(1, multiplier || 1);
     const total = 48 * multiplier;
+    const interval = 35 / multiplier;
     for (let i = 0; i < total; i++) {
       setTimeout(() => {
         const c = document.createElement('span');
@@ -236,7 +237,7 @@
         c.style.animationDuration = (2.4 + Math.random() * 1.8) + 's';
         document.body.appendChild(c);
         setTimeout(() => c.remove(), 4500);
-      }, i * 35);
+      }, i * interval);
     }
   }
   function flashCombine(value) {
