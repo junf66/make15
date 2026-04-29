@@ -189,7 +189,7 @@
     setTimeout(playPopper, 460);
     setTimeout(playSuccess, 800);
 
-    setBanner(msg || '＝ 15　獲得！', 'feedback is-success', 3500);
+    setBanner(msg || '＝ 15　獲得！', 'feedback is-success', 2000);
 
     // 左右の小さなクラッカー（中央は邪魔しない）
     sidePoppers();
