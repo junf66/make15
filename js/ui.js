@@ -195,7 +195,7 @@
       setTimeout(playPopper, 920);
     }
 
-    setBanner(msg || '＝ 15　獲得！', 'feedback is-success' + (fast ? ' is-fast' : ''), 2000);
+    setBanner(msg || '＝ 15　獲得！', 'feedback is-success' + (fast ? ' is-fast' : ''), fast ? 4000 : 2000);
 
     sidePoppers();
     setTimeout(sidePoppers, 700);
