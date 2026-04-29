@@ -625,15 +625,17 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   padding: 24px 18px;
   background: #fff;
   border-top: 1px solid var(--card-border);
+  font-size: 13px;
+  line-height: 1.7;
 }
 .lp h2 {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 18px;
   margin-top: 0;
 }
 .lp h3 {
   font-family: var(--serif);
-  font-size: 17px;
+  font-size: 14px;
   margin-top: 24px;
   border-left: 3px solid var(--accent);
   padding-left: 10px;
