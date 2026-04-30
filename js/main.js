@@ -160,7 +160,7 @@
       const r = Game.captureCell(state, targetUid);
       if (!r.ok) return;
       const fast = r.elapsedMs < 10000;
-      UI.flashSuccess(fast ? '10秒以内クリア！！' : 'クリア！', { fast: fast });
+      UI.flashSuccess(fast ? '10秒以内\nクリア！！' : 'クリア！', { fast: fast });
       Game.saveBestScore(state.stage);
       rerender();
       afterAction();
@@ -189,7 +189,7 @@
       const r = Game.captureCell(state, uid);
       if (r.ok) {
         const fast = r.elapsedMs < 10000;
-        UI.flashSuccess(fast ? '10秒以内クリア！！' : 'クリア！', { fast: fast });
+        UI.flashSuccess(fast ? '10秒以内\nクリア！！' : 'クリア！', { fast: fast });
         Game.saveBestScore(state.stage);
         rerender();
         afterAction();

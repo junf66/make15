@@ -171,7 +171,11 @@
   function setBanner(text, cls, hideMs) {
     if (bannerTimer) { clearTimeout(bannerTimer); bannerTimer = null; }
     const banner = $('#feedback');
-    banner.textContent = text;
+    banner.textContent = '';
+    String(text).split('\n').forEach((line, i) => {
+      if (i > 0) banner.appendChild(document.createElement('br'));
+      banner.appendChild(document.createTextNode(line));
+    });
     banner.className = cls;
     if (hideMs) {
       bannerTimer = setTimeout(() => {
@@ -222,25 +226,32 @@
 
   function confettiRain(multiplier) {
     multiplier = Math.max(1, multiplier || 1);
-    const interval = 35 / multiplier;
-    // 1xは通常の bursts（48個＝約1.7秒）。multiplier>1 のときは 5秒間その密度で降らせる。
-    const duration = multiplier > 1 ? 5000 : 48 * 35;
-    const total = Math.floor(duration / interval);
-    for (let i = 0; i < total; i++) {
-      setTimeout(() => {
-        const c = document.createElement('span');
-        c.className = 'strawberry-rain';
-        c.textContent = '🍓';
-        c.style.left = (Math.random() * 100) + 'vw';
-        const size = 18 + Math.random() * 22;
-        c.style.fontSize = size + 'px';
-        c.style.setProperty('--tx', (Math.random() * 240 - 120) + 'px');
-        c.style.setProperty('--rot', ((Math.random() * 720) + 360) + 'deg');
-        c.style.animationDuration = (2.4 + Math.random() * 1.8) + 's';
-        document.body.appendChild(c);
-        setTimeout(() => c.remove(), 4500);
-      }, i * interval);
+    // 1秒あたりのスポーン数。1xでは ~28 個/秒、5xでは ~143 個/秒
+    const ratePerSec = (1000 / 35) * multiplier;
+    const duration = multiplier > 1 ? 5000 : 48 * 35; // ms
+    const start = performance.now();
+    let spawned = 0;
+    function spawnOne() {
+      const c = document.createElement('span');
+      c.className = 'strawberry-rain';
+      c.textContent = '🍓';
+      c.style.left = (Math.random() * 100) + 'vw';
+      const size = 18 + Math.random() * 22;
+      c.style.fontSize = size + 'px';
+      c.style.setProperty('--tx', (Math.random() * 240 - 120) + 'px');
+      c.style.setProperty('--rot', ((Math.random() * 720) + 360) + 'deg');
+      c.style.animationDuration = (2.4 + Math.random() * 1.8) + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4500);
     }
+    function tick(now) {
+      const elapsed = now - start;
+      if (elapsed > duration) return;
+      const target = Math.floor((elapsed / 1000) * ratePerSec);
+      while (spawned < target) { spawnOne(); spawned++; }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   }
   function flashCombine(value) {
     playCombine();
