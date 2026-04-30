@@ -12,13 +12,56 @@
 
   function rerender() { UI.renderAll(state); }
 
-  function newGame() {
-    state = Game.createGame();
+  let taTimerInterval = null;
+
+  function newGame(opts) {
+    if (taTimerInterval) { clearInterval(taTimerInterval); taTimerInterval = null; }
+    state = Game.createGame(opts);
     Game.incrementGameCount();
     UI.setPassSelecting(false);
     UI.closeOpPicker();
+    UI.closeModal('ta-end-modal');
     rerender();
     document.getElementById('end-banner').hidden = true;
+    if (state.mode === 'timeattack') startTaTick();
+  }
+
+  function startTimeAttack() {
+    newGame({ mode: 'timeattack' });
+  }
+
+  function startTaTick() {
+    if (taTimerInterval) clearInterval(taTimerInterval);
+    taTimerInterval = setInterval(() => {
+      if (!state || state.mode !== 'timeattack') {
+        clearInterval(taTimerInterval); taTimerInterval = null; return;
+      }
+      if (Game.isTimeAttackOver(state)) {
+        clearInterval(taTimerInterval); taTimerInterval = null;
+        endTimeAttack();
+        return;
+      }
+      rerender();
+    }, 1000);
+  }
+
+  function endTimeAttack() {
+    const clears = state.taClears || 0;
+    const isBest = Game.saveBestTA(clears);
+    Game.endTimeAttack(state);
+    rerender();
+    document.getElementById('ta-end-clears').textContent = String(clears);
+    document.getElementById('ta-end-best').textContent = isBest
+      ? '🎉 BEST TA 更新！'
+      : 'BEST TA: ' + Game.loadBestTA();
+    UI.openModal('ta-end-modal');
+  }
+
+  function stopTimeAttack() {
+    if (!confirm('タイムアタックを中止して通常モードに戻りますか？')) return;
+    if (taTimerInterval) { clearInterval(taTimerInterval); taTimerInterval = null; }
+    Game.endTimeAttack(state);
+    rerender();
   }
 
   // ----- ポインタ／ドラッグ検出 -----
@@ -161,7 +204,7 @@
       if (!r.ok) return;
       const fast = r.elapsedMs < 10000;
       UI.flashSuccess(fast ? '10秒以内\nクリア！！' : 'クリア！', { fast: fast });
-      Game.saveBestScore(state.stage);
+      if (state.mode !== 'timeattack') Game.saveBestScore(state.stage);
       rerender();
       afterAction();
     }, 500);
@@ -190,7 +233,7 @@
       if (r.ok) {
         const fast = r.elapsedMs < 10000;
         UI.flashSuccess(fast ? '10秒以内\nクリア！！' : 'クリア！', { fast: fast });
-        Game.saveBestScore(state.stage);
+        if (state.mode !== 'timeattack') Game.saveBestScore(state.stage);
         rerender();
         afterAction();
       } else {
@@ -222,7 +265,7 @@
 
   function afterAction() {
     if (state.finished) {
-      Game.saveBestScore(state.stage);
+      if (state.mode !== 'timeattack') Game.saveBestScore(state.stage);
       rerender();
       const banner = document.getElementById('end-banner');
       if (banner) banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -254,7 +297,10 @@
     document.getElementById('btn-giveup').addEventListener('click', onGiveUp);
     document.getElementById('btn-restart').addEventListener('click', onRestartClick);
     document.getElementById('btn-rules').addEventListener('click', onRules);
-    document.getElementById('btn-end-new').addEventListener('click', newGame);
+    document.getElementById('btn-end-new').addEventListener('click', () => newGame());
+    document.getElementById('btn-ta').addEventListener('click', startTimeAttack);
+    document.getElementById('btn-ta-stop').addEventListener('click', stopTimeAttack);
+    document.getElementById('btn-ta-restart').addEventListener('click', startTimeAttack);
 
     document.querySelectorAll('.modal-close').forEach(btn => {
       btn.addEventListener('click', () => {

@@ -115,8 +115,34 @@
   }
 
   function renderHeader(state) {
+    const isTA = state.mode === 'timeattack';
+    // ヘッダーの BEST 切替
+    document.getElementById('best-stage').hidden = isTA;
+    document.getElementById('best-ta').hidden = !isTA;
+    if (isTA) {
+      $('#stat-best-ta').textContent = String(Game.loadBestTA());
+    } else {
+      $('#stat-best').textContent = String(Game.loadBestScore());
+    }
+    // STATUS 行の切替
+    document.getElementById('status-stage').hidden = isTA;
+    document.getElementById('status-ta-time').hidden = !isTA;
+    document.getElementById('status-ta-clears').hidden = !isTA;
+    document.getElementById('btn-ta').hidden = isTA;
+    document.getElementById('btn-ta-stop').hidden = !isTA;
+    // 値
     $('#stat-stage').textContent = String(state.stage);
-    $('#stat-best').textContent = String(Game.loadBestScore());
+    if (isTA) {
+      $('#stat-ta-clears').textContent = String(state.taClears || 0);
+      $('#stat-time').textContent = formatTime(Math.max(0, (state.taEndsAt || 0) - Date.now()));
+    }
+  }
+
+  function formatTime(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
   }
 
   function renderField(state) {

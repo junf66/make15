@@ -161,6 +161,37 @@ button:disabled { cursor: not-allowed; opacity: 0.4; }
   margin: 0 2px;
   font-variant-numeric: tabular-nums;
 }
+.btn-ta {
+  margin-left: auto;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.btn-ta:hover { background: #b93b42; }
+.btn-ta:active { transform: scale(0.95); }
+.btn-ta-stop {
+  margin-left: auto;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.btn-ta-stop:hover { background: var(--soft); color: var(--ink); }
+#status-ta-time strong {
+  color: var(--accent);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
 
 .pass-hint {
   text-align: center;

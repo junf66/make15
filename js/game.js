@@ -14,20 +14,24 @@
 
   const STORAGE_KEYS = {
     BEST_SCORE: 'make15_best_stage',
+    BEST_TA: 'make15_best_ta',
     PLAY_COUNT: 'make15_play_count',
     TOTAL_GAMES: 'make15_total_games',
     SETTINGS: 'make15_settings',
     LAST_PLAYED: 'make15_last_played',
   };
 
+  const TIME_ATTACK_MS = 180000; // 3分
+
   let nextCardUid = 0;
   function newCard(value, weight) {
     return { uid: 'c' + (++nextCardUid), value: value, weight: weight || 1 };
   }
 
-  function createGame() {
+  function createGame(opts) {
+    opts = opts || {};
     const sequence = shuffle(buildFullDeck());
-    return startWithSequence(sequence);
+    return startWithSequence(sequence, opts);
   }
 
   function restartGame(state) {
@@ -35,13 +39,16 @@
     return startWithSequence(state.originalSequence.slice());
   }
 
-  function startWithSequence(sequence) {
+  function startWithSequence(sequence, opts) {
+    opts = opts || {};
     const original = sequence.slice();
     const deck = sequence.map(v => newCard(v, 1));
     const field = [];
     for (let i = 0; i < FIELD_SIZE; i++) {
       field.push(deck.length ? deck.shift() : null);
     }
+    const isTA = opts.mode === 'timeattack';
+    const now = Date.now();
     const state = {
       deck: deck,
       field: field,
@@ -52,7 +59,11 @@
       lastEvent: null,
       originalSequence: original,
       roundSnapshot: null,
-      roundStartedAt: Date.now(),
+      roundStartedAt: now,
+      mode: isTA ? 'timeattack' : 'normal',
+      taStartedAt: isTA ? now : null,
+      taEndsAt: isTA ? now + TIME_ATTACK_MS : null,
+      taClears: 0,
     };
     snapshotRound(state);
     return state;
@@ -146,12 +157,22 @@
     state.field[idx] = null;
     state.captured += w;
     state.stage += 1;
+    if (state.mode === 'timeattack') state.taClears += 1;
     refill(state);
     state.roundStartedAt = Date.now();
     snapshotRound(state);
     state.lastEvent = { type: 'capture', weight: w, elapsedMs: elapsedMs };
     checkEnd(state);
     return { ok: true, weight: w, elapsedMs: elapsedMs };
+  }
+
+  function isTimeAttackOver(state) {
+    return state.mode === 'timeattack' && state.taEndsAt != null && Date.now() >= state.taEndsAt;
+  }
+
+  function endTimeAttack(state) {
+    state.mode = 'normal';
+    state.taEndsAt = null;
   }
 
   function pass(state, uid) {
@@ -225,6 +246,22 @@
     } catch (e) {}
     return false;
   }
+  function loadBestTA() {
+    try {
+      const v = localStorage.getItem(STORAGE_KEYS.BEST_TA);
+      return v ? parseInt(v, 10) || 0 : 0;
+    } catch (e) { return 0; }
+  }
+  function saveBestTA(score) {
+    try {
+      const cur = loadBestTA();
+      if (score > cur) {
+        localStorage.setItem(STORAGE_KEYS.BEST_TA, String(score));
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
   function incrementGameCount() {
     try {
       const v = parseInt(localStorage.getItem(STORAGE_KEYS.TOTAL_GAMES) || '0', 10);
@@ -248,8 +285,10 @@
   global.M15.Game = {
     createGame, restartGame, restartRound,
     combine, captureCell, pass, giveUp,
+    isTimeAttackOver, endTimeAttack,
     previews, calcOp,
-    loadBestScore, saveBestScore, incrementGameCount, loadSettings, saveSettings,
-    CONSTANTS: { FIELD_SIZE, TARGET },
+    loadBestScore, saveBestScore, loadBestTA, saveBestTA,
+    incrementGameCount, loadSettings, saveSettings,
+    CONSTANTS: { FIELD_SIZE, TARGET, TIME_ATTACK_MS },
   };
 })(typeof window !== 'undefined' ? window : globalThis);

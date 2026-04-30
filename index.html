@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260428ar">
+<link rel="stylesheet" href="css/style.css?v=20260428as">
 
 <script type="application/ld+json">
 {
@@ -70,7 +70,8 @@
       <span class="logo-sub">(めいくいちご) | 5枚で15を作る計算パズル</span>
     </h1>
     <div class="header-meta">
-      <span class="best-score" aria-label="ベストステージ">🏆 <span class="best-label">BEST<br>STAGE</span> <strong id="stat-best">0</strong></span>
+      <span class="best-score" id="best-stage" aria-label="ベストステージ">🏆 <span class="best-label">BEST<br>STAGE</span> <strong id="stat-best">0</strong></span>
+      <span class="best-score ta-only" id="best-ta" aria-label="ベストタイムアタック" hidden>🏆 <span class="best-label">BEST<br>TA</span> <strong id="stat-best-ta">0</strong></span>
       <button id="btn-rules" type="button" class="icon-btn" aria-label="ルール">？</button>
     </div>
   </div>
@@ -78,7 +79,11 @@
 
 <main class="game">
   <section class="status">
-    <div class="status-item">STAGE <strong id="stat-stage">0</strong></div>
+    <div class="status-item" id="status-stage">STAGE <strong id="stat-stage">0</strong></div>
+    <div class="status-item ta-only" id="status-ta-time" hidden>TIME <strong id="stat-time">3:00</strong></div>
+    <div class="status-item ta-only" id="status-ta-clears" hidden>CLEARS <strong id="stat-ta-clears">0</strong></div>
+    <button id="btn-ta" type="button" class="btn-ta">3分モード ▶</button>
+    <button id="btn-ta-stop" type="button" class="btn-ta-stop" hidden>中止</button>
   </section>
 
   <p id="pass-hint" class="pass-hint" hidden>捨てるカードをタップしてください</p>
@@ -183,6 +188,17 @@
   </div>
 </div>
 
+<!-- タイムアタック結果モーダル -->
+<div id="ta-end-modal" class="modal" hidden role="dialog" aria-labelledby="ta-end-title" aria-modal="true">
+  <div class="modal-inner">
+    <h2 id="ta-end-title">⏱ TIME UP！</h2>
+    <p style="text-align:center;font-size:18px;">3分で <strong id="ta-end-clears" style="font-size:36px;color:var(--accent);">0</strong> 回クリア</p>
+    <p style="text-align:center;" id="ta-end-best">BEST TA: 0</p>
+    <button id="btn-ta-restart" class="btn btn-primary" type="button" style="width:100%;margin-top:12px;">もう一度3分</button>
+    <button class="modal-close btn btn-secondary" type="button" data-target="ta-end-modal" style="width:100%;margin-top:8px;">通常モードへ</button>
+  </div>
+</div>
+
 <div id="fx" class="fx-layer" aria-hidden="true"></div>
 
 <script>
@@ -193,10 +209,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<script src="js/deck.js?v=20260428ar"></script>
-<script src="js/evaluator.js?v=20260428ar"></script>
-<script src="js/game.js?v=20260428ar"></script>
-<script src="js/ui.js?v=20260428ar"></script>
-<script src="js/main.js?v=20260428ar"></script>
+<script src="js/deck.js?v=20260428as"></script>
+<script src="js/evaluator.js?v=20260428as"></script>
+<script src="js/game.js?v=20260428as"></script>
+<script src="js/ui.js?v=20260428as"></script>
+<script src="js/main.js?v=20260428as"></script>
 </body>
 </html>
