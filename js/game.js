@@ -61,12 +61,23 @@
       roundSnapshot: null,
       roundStartedAt: now,
       mode: isTA ? 'timeattack' : 'normal',
-      taStartedAt: isTA ? now : null,
-      taEndsAt: isTA ? now + TIME_ATTACK_MS : null,
+      taStartedAt: null,
+      taEndsAt: null, // STARTを押すまで null（待機中）
       taClears: 0,
     };
     snapshotRound(state);
     return state;
+  }
+
+  function startTimeAttackTimer(state) {
+    if (state.mode !== 'timeattack') return false;
+    const now = Date.now();
+    state.taStartedAt = now;
+    state.taEndsAt = now + TIME_ATTACK_MS;
+    state.taClears = 0;
+    state.roundStartedAt = now;
+    state.lastEvent = { type: 'taStart' };
+    return true;
   }
 
   function cloneCard(c) { return c ? { uid: c.uid, value: c.value, weight: c.weight } : null; }
@@ -285,7 +296,7 @@
   global.M15.Game = {
     createGame, restartGame, restartRound,
     combine, captureCell, pass, giveUp,
-    isTimeAttackOver, endTimeAttack,
+    isTimeAttackOver, endTimeAttack, startTimeAttackTimer,
     previews, calcOp,
     loadBestScore, saveBestScore, loadBestTA, saveBestTA,
     incrementGameCount, loadSettings, saveSettings,

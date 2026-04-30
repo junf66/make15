@@ -27,7 +27,15 @@
   }
 
   function startTimeAttack() {
+    // 待機状態でカードを並べる（タイマーは未開始）
     newGame({ mode: 'timeattack' });
+  }
+
+  function actuallyStartTaTimer() {
+    if (!state || state.mode !== 'timeattack' || state.taEndsAt) return;
+    Game.startTimeAttackTimer(state);
+    rerender();
+    startTaTick();
   }
 
   function startTaTick() {
@@ -180,6 +188,10 @@
 
   function handleDrop(src, dst, x, y) {
     if (UI.isPassSelecting()) return;
+    if (state.mode === 'timeattack' && !state.taEndsAt) {
+      UI.flashFail('STARTを押してから');
+      return;
+    }
     if (!src || !dst || src.uid === dst.uid) return;
     UI.openOpPicker(src.value, dst.value, x, y, (op) => {
       const r = Game.combine(state, src.uid, op, dst.uid);
@@ -299,6 +311,7 @@
     document.getElementById('btn-rules').addEventListener('click', onRules);
     document.getElementById('btn-end-new').addEventListener('click', () => newGame());
     document.getElementById('btn-ta').addEventListener('click', startTimeAttack);
+    document.getElementById('btn-ta-start').addEventListener('click', actuallyStartTaTimer);
     document.getElementById('btn-ta-stop').addEventListener('click', stopTimeAttack);
     document.getElementById('btn-ta-restart').addEventListener('click', startTimeAttack);
 

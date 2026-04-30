@@ -116,7 +116,9 @@
 
   function renderHeader(state) {
     const isTA = state.mode === 'timeattack';
-    // ヘッダーの BEST 切替
+    const isTaRunning = isTA && !!state.taEndsAt;
+    const isTaPending = isTA && !state.taEndsAt;
+
     document.getElementById('best-stage').hidden = isTA;
     document.getElementById('best-ta').hidden = !isTA;
     if (isTA) {
@@ -124,15 +126,17 @@
     } else {
       $('#stat-best').textContent = String(Game.loadBestScore());
     }
-    // STATUS 行の切替
+
     document.getElementById('status-stage').hidden = isTA;
-    document.getElementById('status-ta-time').hidden = !isTA;
-    document.getElementById('status-ta-clears').hidden = !isTA;
+    document.getElementById('status-ta-pre').hidden = !isTaPending;
+    document.getElementById('status-ta-time').hidden = !isTaRunning;
+    document.getElementById('status-ta-clears').hidden = !isTaRunning;
     document.getElementById('btn-ta').hidden = isTA;
-    document.getElementById('btn-ta-stop').hidden = !isTA;
-    // 値
+    document.getElementById('btn-ta-start').hidden = !isTaPending;
+    document.getElementById('btn-ta-stop').hidden = !isTaRunning;
+
     $('#stat-stage').textContent = String(state.stage);
-    if (isTA) {
+    if (isTaRunning) {
       $('#stat-ta-clears').textContent = String(state.taClears || 0);
       $('#stat-time').textContent = formatTime(Math.max(0, (state.taEndsAt || 0) - Date.now()));
     }
