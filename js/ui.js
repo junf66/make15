@@ -226,9 +226,8 @@
 
   function confettiRain(multiplier) {
     multiplier = Math.max(1, multiplier || 1);
-    // multiplier > 1 では密度を半分にしてブラウザ負荷を抑える（≒ 2.5x 密度）
-    const effective = multiplier > 1 ? multiplier / 2 : multiplier;
-    const ratePerSec = (1000 / 35) * effective;
+    // 5x指定でも実密度は ~1.2x、duration を5秒に伸ばす（絵文字は描画コスト高なので件数を抑える）
+    const ratePerSec = multiplier > 1 ? 35 : (1000 / 35);
     const duration = multiplier > 1 ? 5000 : 48 * 35;
     const start = performance.now();
     let spawned = 0;
