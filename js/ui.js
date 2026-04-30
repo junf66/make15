@@ -226,9 +226,10 @@
 
   function confettiRain(multiplier) {
     multiplier = Math.max(1, multiplier || 1);
-    // 1秒あたりのスポーン数。1xでは ~28 個/秒、5xでは ~143 個/秒
-    const ratePerSec = (1000 / 35) * multiplier;
-    const duration = multiplier > 1 ? 5000 : 48 * 35; // ms
+    // multiplier > 1 では密度を半分にしてブラウザ負荷を抑える（≒ 2.5x 密度）
+    const effective = multiplier > 1 ? multiplier / 2 : multiplier;
+    const ratePerSec = (1000 / 35) * effective;
+    const duration = multiplier > 1 ? 5000 : 48 * 35;
     const start = performance.now();
     let spawned = 0;
     function spawnOne() {

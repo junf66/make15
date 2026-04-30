@@ -1008,6 +1008,9 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   --rot: 720deg;
   animation: confetti-fall 2.6s linear forwards;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 @keyframes confetti-fall {
   0% { transform: translate(0, 0) rotate(0); opacity: 1; }
