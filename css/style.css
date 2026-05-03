@@ -854,7 +854,12 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   border-radius: var(--radius);
   margin-top: 16px;
   font-size: 16px;
-  color: #fff;
+}
+.modal-inner .btn.btn-primary.modal-close { color: #fff; }
+.modal-inner .btn.btn-secondary.modal-close {
+  color: var(--ink);
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
 }
 
 /* ----- iOS PWA install hint ----- */
