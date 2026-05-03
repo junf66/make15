@@ -858,7 +858,11 @@ body.is-dragging { user-select: none; cursor: grabbing; }
   margin-top: 16px;
   font-size: 16px;
 }
-.modal-inner .btn.btn-primary.modal-close { color: #fff; }
+.modal-inner .btn.btn-primary.modal-close {
+  color: #fff;
+  background: var(--accent);
+}
+.modal-inner .btn.btn-primary.modal-close:hover { background: #b93b42; }
 .modal-inner .btn.btn-secondary.modal-close {
   color: var(--ink);
   background: var(--card-bg);
