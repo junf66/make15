@@ -60,8 +60,8 @@
     rerender();
     document.getElementById('ta-end-clears').textContent = String(clears);
     document.getElementById('ta-end-best').textContent = isBest
-      ? '🎉 BEST TA 更新！'
-      : 'BEST TA: ' + Game.loadBestTA();
+      ? '🎉 BEST Time Attack 更新！'
+      : 'BEST Time Attack: ' + Game.loadBestTA();
     UI.openModal('ta-end-modal');
   }
 
