@@ -140,6 +140,12 @@
     }
   }
 
+  function renderTimer(state) {
+    if (!state || state.mode !== 'timeattack') return;
+    $('#stat-time').textContent = formatTime(Math.max(0, (state.taEndsAt || 0) - Date.now()));
+    $('#stat-ta-clears').textContent = String(state.taClears || 0);
+  }
+
   function formatTime(ms) {
     const total = Math.max(0, Math.floor(ms / 1000));
     const m = Math.floor(total / 60);
@@ -432,7 +438,7 @@
 
   global.M15 = global.M15 || {};
   global.M15.UI = {
-    renderAll, flashSuccess, flashCombine, flashFail, flashOp, notifySelect,
+    renderAll, renderTimer, flashSuccess, flashCombine, flashFail, flashOp, notifySelect,
     openModal, closeModal,
     openOpPicker, closeOpPicker,
     isPassSelecting, setPassSelecting, setSoundOn,

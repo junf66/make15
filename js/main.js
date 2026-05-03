@@ -49,7 +49,7 @@
         endTimeAttack();
         return;
       }
-      rerender();
+      UI.renderTimer(state);
     }, 1000);
   }
 
