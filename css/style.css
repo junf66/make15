@@ -46,6 +46,9 @@ button {
 }
 button:disabled { cursor: not-allowed; opacity: 0.4; }
 
+/* HTML hidden 属性が CSS の display 指定で上書きされないように */
+[hidden] { display: none !important; }
+
 /* ----- Header ----- */
 .site-header {
   background: var(--bg);

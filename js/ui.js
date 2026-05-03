@@ -121,11 +121,9 @@
 
     document.getElementById('best-stage').hidden = isTA;
     document.getElementById('best-ta').hidden = !isTA;
-    if (isTA) {
-      $('#stat-best-ta').textContent = String(Game.loadBestTA());
-    } else {
-      $('#stat-best').textContent = String(Game.loadBestScore());
-    }
+    // 両方常に最新値を入れておく（モード切替時に古い値が一瞬出るのを防ぐ）
+    $('#stat-best').textContent = String(Game.loadBestScore());
+    $('#stat-best-ta').textContent = String(Game.loadBestTA());
 
     document.getElementById('status-stage').hidden = isTA;
     document.getElementById('status-ta-pre').hidden = !isTaPending;
