@@ -3,7 +3,6 @@
 //   - 場のセルは {uid, value, weight} で、合体するとそのセル位置に新セルができる（重みは合算）
 //   - もう片方のセルは空になる（位置はそのまま）
 //   - セルの値が 15 かつ 重み が 5 のとき、タップで獲得（スコア +5）
-//   - パス：1セルを捨てて山札から1枚補充
 (function (global) {
   'use strict';
 
@@ -17,7 +16,6 @@
     BEST_TA: 'make15_best_ta',
     PLAY_COUNT: 'make15_play_count',
     TOTAL_GAMES: 'make15_total_games',
-    SETTINGS: 'make15_settings',
     LAST_PLAYED: 'make15_last_played',
   };
 
@@ -32,11 +30,6 @@
     opts = opts || {};
     const sequence = shuffle(buildFullDeck());
     return startWithSequence(sequence, opts);
-  }
-
-  function restartGame(state) {
-    if (!state || !state.originalSequence) return createGame();
-    return startWithSequence(state.originalSequence.slice());
   }
 
   function startWithSequence(sequence, opts) {
@@ -186,23 +179,6 @@
     state.taEndsAt = null;
   }
 
-  function pass(state, uid) {
-    if (state.finished) return false;
-    const nonNull = state.field.findIndex(c => c != null);
-    if (nonNull < 0) return false;
-    const idx = uid
-      ? state.field.findIndex(c => c && c.uid === uid)
-      : nonNull;
-    if (idx < 0) return false;
-    const removed = state.field[idx];
-    state.field[idx] = null;
-    state.discard.push(removed);
-    if (state.deck.length > 0) state.field[idx] = state.deck.shift();
-    state.lastEvent = { type: 'pass' };
-    checkEnd(state);
-    return true;
-  }
-
   // ギブアップ：場の全カードを捨てて、新しい5枚を引く（ステージは0に戻る）
   function giveUp(state) {
     if (state.finished) return false;
@@ -280,26 +256,15 @@
       localStorage.setItem(STORAGE_KEYS.LAST_PLAYED, new Date().toISOString());
     } catch (e) {}
   }
-  function loadSettings() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (!raw) return { sound: true, theme: 'light' };
-      return Object.assign({ sound: true, theme: 'light' }, JSON.parse(raw));
-    } catch (e) { return { sound: true, theme: 'light' }; }
-  }
-  function saveSettings(settings) {
-    try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings)); }
-    catch (e) {}
-  }
 
   global.M15 = global.M15 || {};
   global.M15.Game = {
-    createGame, restartGame, restartRound,
-    combine, captureCell, pass, giveUp,
+    createGame, restartRound,
+    combine, captureCell, giveUp,
     isTimeAttackOver, endTimeAttack, startTimeAttackTimer,
     previews, calcOp,
     loadBestScore, saveBestScore, loadBestTA, saveBestTA,
-    incrementGameCount, loadSettings, saveSettings,
+    incrementGameCount,
     CONSTANTS: { FIELD_SIZE, TARGET, TIME_ATTACK_MS },
   };
 })(typeof window !== 'undefined' ? window : globalThis);

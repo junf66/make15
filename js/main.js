@@ -8,7 +8,6 @@
   const FIELD_SIZE = Game.CONSTANTS.FIELD_SIZE;
 
   let state = null;
-  let settings = Game.loadSettings();
 
   function rerender() { UI.renderAll(state); }
 
@@ -18,11 +17,9 @@
     if (taTimerInterval) { clearInterval(taTimerInterval); taTimerInterval = null; }
     state = Game.createGame(opts);
     Game.incrementGameCount();
-    UI.setPassSelecting(false);
     UI.closeOpPicker();
     UI.closeModal('ta-end-modal');
     rerender();
-    document.getElementById('end-banner').hidden = true;
     if (state.mode === 'timeattack') startTaTick();
   }
 
@@ -187,7 +184,6 @@
   }
 
   function handleDrop(src, dst, x, y) {
-    if (UI.isPassSelecting()) return;
     if (state.mode === 'timeattack' && !state.taEndsAt) {
       UI.flashFail('STARTを押してから');
       return;
@@ -230,14 +226,6 @@
     const card = state.field.find(c => c && c.uid === uid);
     if (!card) return;
 
-    if (UI.isPassSelecting()) {
-      Game.pass(state, uid);
-      UI.setPassSelecting(false);
-      rerender();
-      afterAction();
-      return;
-    }
-
     // クリア対象のセル：場の唯一のセルで値=15
     const onlyCell = state.field.filter(c => c != null);
     if (card.value === TARGET && onlyCell.length === 1 && onlyCell[0].uid === uid) {
@@ -269,7 +257,6 @@
     if (!fieldHasCards()) return;
     if (!confirm('新しい5枚を引きます。よろしいですか？\n（STAGEは0に戻ります）')) return;
     Game.giveUp(state);
-    UI.setPassSelecting(false);
     UI.closeOpPicker();
     rerender();
     afterAction();
@@ -279,8 +266,6 @@
     if (state.finished) {
       if (state.mode !== 'timeattack') Game.saveBestScore(state.stage);
       rerender();
-      const banner = document.getElementById('end-banner');
-      if (banner) banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 
@@ -289,10 +274,8 @@
   function onRestartClick() {
     if (!state) return;
     Game.restartRound(state);
-    UI.setPassSelecting(false);
     UI.closeOpPicker();
     rerender();
-    document.getElementById('end-banner').hidden = true;
   }
 
   function bindEvents() {
@@ -309,7 +292,6 @@
     document.getElementById('btn-giveup').addEventListener('click', onGiveUp);
     document.getElementById('btn-restart').addEventListener('click', onRestartClick);
     document.getElementById('btn-rules').addEventListener('click', onRules);
-    document.getElementById('btn-end-new').addEventListener('click', () => newGame());
     document.getElementById('btn-ta').addEventListener('click', startTimeAttack);
     document.getElementById('btn-ta-start').addEventListener('click', actuallyStartTaTimer);
     document.getElementById('btn-ta-stop').addEventListener('click', stopTimeAttack);

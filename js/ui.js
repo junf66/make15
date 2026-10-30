@@ -62,25 +62,19 @@
     osc.start();
     osc.stop(ctx.currentTime + duration + 0.05);
   }
-  let soundOn = true;
-  function setSoundOn(v) { soundOn = !!v; }
-  function playSelect() { if (soundOn) beep({ freq: 660, duration: 0.06, type: 'triangle', gain: 0.05 }); }
   function playCombine() {
-    if (!soundOn) return;
     beep({ freq: 440, duration: 0.08, type: 'triangle', gain: 0.06 });
     setTimeout(() => beep({ freq: 660, duration: 0.12, type: 'triangle', gain: 0.06 }), 70);
   }
   function playSuccess() {
-    if (!soundOn) return;
     beep({ freq: 523, duration: 0.12, type: 'triangle', gain: 0.07 });
     setTimeout(() => beep({ freq: 784, duration: 0.18, type: 'triangle', gain: 0.07 }), 120);
     setTimeout(() => beep({ freq: 1047, duration: 0.22, type: 'triangle', gain: 0.07 }), 280);
   }
-  function playFail() { if (soundOn) beep({ freq: 220, duration: 0.18, type: 'sawtooth', gain: 0.05, sweep: -80 }); }
+  function playFail() { beep({ freq: 220, duration: 0.18, type: 'sawtooth', gain: 0.05, sweep: -80 }); }
 
   // クラッカー音（ホワイトノイズの鋭い破裂）
   function playPopper() {
-    if (!soundOn) return;
     const ctx = getAudio();
     if (!ctx) return;
     if (ctx.state === 'suspended') { try { ctx.resume(); } catch (e) {} }
@@ -111,7 +105,6 @@
     renderHeader(state);
     renderField(state);
     renderControls(state);
-    renderEnd(state);
   }
 
   function renderHeader(state) {
@@ -185,19 +178,6 @@
   function renderControls(state) {
     const anyCard = state.field.some(c => c != null);
     $('#btn-giveup').disabled = !anyCard;
-  }
-
-  function renderEnd(state) {
-    const banner = $('#end-banner');
-    if (!state.finished) { banner.hidden = true; return; }
-    banner.hidden = false;
-    $('#end-title').textContent = 'ゲーム終了';
-    $('#end-score').textContent = String(state.stage);
-    const best = Game.loadBestScore();
-    const isBest = state.stage > best;
-    $('#end-best').textContent = isBest
-      ? '🎉 ベスト更新！（前回: ' + best + '）'
-      : 'ベスト: ' + best;
   }
 
   // ----- フィードバック -----
@@ -309,25 +289,6 @@
     layer.appendChild(tag);
     setTimeout(() => tag.remove(), 600);
   }
-  function notifySelect() { playSelect(); }
-
-  function burst(color) {
-    const layer = $('#fx');
-    if (!layer) return;
-    const N = 18;
-    for (let i = 0; i < N; i++) {
-      const dot = document.createElement('span');
-      dot.className = 'fx-dot';
-      dot.style.background = color;
-      const angle = (Math.PI * 2 * i) / N;
-      const dist = 80 + Math.random() * 60;
-      dot.style.setProperty('--dx', (Math.cos(angle) * dist) + 'px');
-      dot.style.setProperty('--dy', (Math.sin(angle) * dist) + 'px');
-      layer.appendChild(dot);
-      setTimeout(() => dot.remove(), 900);
-    }
-  }
-
   // ----- 演算子ピッカー（プレビュー値付き） -----
   function openOpPicker(srcVal, dstVal, x, y, onPick) {
     closeOpPicker();
@@ -426,21 +387,10 @@
     if (m) { m.hidden = true; m.classList.remove('is-open'); }
   }
 
-  // ----- パスモード -----
-  let passSelecting = false;
-  function isPassSelecting() { return passSelecting; }
-  function setPassSelecting(v) {
-    passSelecting = !!v;
-    document.body.classList.toggle('pass-mode', passSelecting);
-    const hint = $('#pass-hint');
-    if (hint) hint.hidden = !passSelecting;
-  }
-
   global.M15 = global.M15 || {};
   global.M15.UI = {
-    renderAll, renderTimer, flashSuccess, flashCombine, flashFail, flashOp, notifySelect,
+    renderAll, renderTimer, flashSuccess, flashCombine, flashFail, flashOp,
     openModal, closeModal,
     openOpPicker, closeOpPicker,
-    isPassSelecting, setPassSelecting, setSoundOn,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
